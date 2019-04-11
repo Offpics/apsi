@@ -33,6 +33,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'crispy_forms',
     'projects.apps.ProjectsConfig',
+    'users.apps.UsersConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -123,3 +124,6 @@ STATIC_URL = '/static/'
 
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
+LOGIN_REDIRECT_URL = 'project-home'
+LOGIN_URL = 'login'

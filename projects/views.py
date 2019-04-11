@@ -1,9 +1,10 @@
 from django.shortcuts import render
 from django.views.generic import CreateView, DetailView
+from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import Project
 
 
-class ProjectCreateView(CreateView):
+class ProjectCreateView(LoginRequiredMixin, CreateView):
     model = Project
     fields = ['title', 'description']
 
