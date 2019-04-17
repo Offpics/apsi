@@ -21,9 +21,13 @@
           </button>
           <div class="collapse navbar-collapse" id="navbarToggle">
             <div class="navbar-nav mr-auto">
-            <a class="nav-item nav-link" href="{% url 'project-list' %}">Projects</a>
             {% if user.is_authenticated %}
+            {% if perms.projects.view_project %}
+                <a class="nav-item nav-link" href="{% url 'project-list' %}">Projects</a>
+            {% endif %}
+            {% if perms.projects.add_project %}
                 <a class="nav-item nav-link" href="{% url 'project-create' %}">New Project</a>
+            {% endif %}
             {% endif %}
             </div>
             <!-- Navbar Right Side -->
