@@ -3,8 +3,8 @@ version: '3.7'
 services:
   web:
     build: .
-    command: /usr/src/app/manage.py runserver 0.0.0.0:8080
+    command: /usr/src/app/manage.py runserver 0.0.0.0:8000
     volumes: 
       - .:/usr/src/app/
     ports: 
-      - 55555:8080
+      - 55555:8000
