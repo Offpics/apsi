@@ -1,5 +1,7 @@
 # APSI
 
+Link - http://138.68.102.10:55555
+
 Aktualne konta do logowania w bazie danych (plik db.sqlite3):
 
 1. Konto z uprawnieniami klienta:
