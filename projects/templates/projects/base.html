@@ -36,7 +36,6 @@
               <a class="nav-item nav-link" href="{% url 'logout' %}">Logout</a>
               {% else %}
                 <a class="nav-item nav-link" href="{% url 'login' %}">Login</a>
-                <a class="nav-item nav-link" href="{% url 'register' %}">Register</a>
               {% endif %}
             </div>
           </div>
@@ -52,7 +51,14 @@
         {% endfor %}
     {% endif %}
 
+    <div class="row">
+    <div class="col-2">
+    </div>
+    <div class="col-6">
     {% block content %}{% endblock %}
+    </div>
+    <div class="col-2"></div>
+    </div>
     </main>
 
 
