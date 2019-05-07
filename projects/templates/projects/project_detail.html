@@ -8,8 +8,12 @@
 
 <p>Workers: {{ object.worker.all }}</p>
 
-<p>Tasks: {{ object.task_set.all }}</p>
+<p>Tasks:
 
+{% for task in object.task_set.all %}
+    <a href="{% url 'task-detail' task.id %}">{{ task.title }}</a>
+{% endfor %}
+</p>
 <p><a href="{% url 'task-create' object.id %}">Add new Task to the project</a></p>
 
 <p><a href="{% url 'project-update' object.id %}">Update Current Project</a></p>

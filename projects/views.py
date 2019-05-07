@@ -93,5 +93,9 @@ class TaskCreateView(LoginRequiredMixin,
     permission_required = 'projects.add_task'
 
 
+class TaskDetailView(DetailView):
+    model = Task
+
+
 def home(request):
     return render(request, 'projects/home.html')

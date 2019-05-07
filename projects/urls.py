@@ -6,7 +6,8 @@ from .views import (
     ProjectListView,
     MyProjectsListView,
     ProjectUpdateView,
-    TaskCreateView
+    TaskCreateView,
+    TaskDetailView,
 )
 
 urlpatterns = [
@@ -17,5 +18,6 @@ urlpatterns = [
          name='project-detail'),
     path('projects/<int:pk>/update', ProjectUpdateView.as_view(), name='project-update'),
     # path('myprojects/', MyProjectsListView.as_view(), name='myprojects'),
-    path('projects/task/new/<int:pk>', TaskCreateView.as_view(), name='task-create')
+    path('projects/task/new/<int:pk>', TaskCreateView.as_view(), name='task-create'),
+    path('projects/task/<int:pk>', TaskDetailView.as_view(), name='task-detail'),
 ]
