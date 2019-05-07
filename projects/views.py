@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.models import User
 from django.views.generic import CreateView, DetailView, ListView, UpdateView
 from django.contrib.auth.mixins import (
     LoginRequiredMixin,
@@ -38,6 +39,18 @@ class ProjectUpdateView(PermissionRequiredMixin, UpdateView):
     fields = ['title', 'description', 'user']
 
     permission_required = 'projects.update_project'
+
+
+class MyProjectsListView(LoginRequiredMixin, ListView):
+    """ Returns ListView with projects that authenticated user belongs to. """
+    template_name = 'projects/project_list'
+    context_object_name = 'projects'
+
+
+    def get_queryset(self):
+        self.user = get_object_or_404(User, id=self.request.user.id)
+        queryset = Project.objects.filter(user=self.user)
+        return queryset
 
 
 class TaskCreateView(LoginRequiredMixin,
