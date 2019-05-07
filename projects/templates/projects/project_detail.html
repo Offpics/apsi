@@ -10,4 +10,6 @@
 <p>{{ object.task_set.all }}</p>
 
 <p><a href="{% url 'task-create' object.id %}">Add new Task to the project</a></p>
+
+<p><a href="{% url 'project-update' object.id %}">Update Current Project</a></p>
 {% endblock content %}

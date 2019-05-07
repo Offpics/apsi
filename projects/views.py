@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404
-from django.views.generic import CreateView, DetailView, ListView
+from django.views.generic import CreateView, DetailView, ListView, UpdateView
 from django.contrib.auth.mixins import (
     LoginRequiredMixin,
     PermissionRequiredMixin
@@ -30,6 +30,14 @@ class ProjectListView(PermissionRequiredMixin, ListView):
     context_object_name = 'projects'
 
     permission_required = 'projects.view_project'
+
+
+class ProjectUpdateView(PermissionRequiredMixin, UpdateView):
+    model = Project
+
+    fields = ['title', 'description', 'user']
+
+    permission_required = 'projects.update_project'
 
 
 class TaskCreateView(LoginRequiredMixin,
