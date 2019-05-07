@@ -7,14 +7,16 @@ from django.contrib.auth.mixins import (
 )
 from django.contrib.messages.views import SuccessMessageMixin
 from .models import Project, Task
+from .forms import ProjectCreateForm
 
 
 class ProjectCreateView(LoginRequiredMixin,
                         PermissionRequiredMixin,
                         SuccessMessageMixin,
                         CreateView):
-    model = Project
-    fields = ['title', 'description', 'user']
+
+    form_class = ProjectCreateForm
+    template_name = "projects/project_form.html"
 
     def form_valid(self, form):
         # Get project by id.
@@ -47,7 +49,8 @@ class ProjectListView(PermissionRequiredMixin, ListView):
 class ProjectUpdateView(PermissionRequiredMixin, UpdateView):
     model = Project
 
-    fields = ['title', 'description', 'user']
+    form_class = ProjectCreateForm
+    template_name = "projects/project_form.html"
 
     permission_required = 'projects.change_project'
 
@@ -58,8 +61,10 @@ class MyProjectsListView(LoginRequiredMixin, ListView):
     context_object_name = 'projects'
 
     def get_queryset(self):
-        self.user = get_object_or_404(User, id=self.request.user.id)
-        queryset = Project.objects.filter(user=self.user)
+        user = get_object_or_404(User, id=self.request.user.id)
+        queryset = Project.objects.filter(manager=user)
+        if (len(queryset) == 0):
+            queryset = Project.objects.filter(worker=user)
         return queryset
 
 

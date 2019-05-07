@@ -15,10 +15,10 @@ class Project(models.Model):
                                 related_name="manager_project_set")
 
     # Workers assigned to the project.
-    user = models.ManyToManyField(User, related_name="user_project_set")
+    worker = models.ManyToManyField(User, related_name="worker_project_set")
 
     def __str__(self):
-        return f'{self.title}, {self.description}, {self.user}'
+        return f'{self.title}, {self.description}, {self.worker}'
 
     # Returns to project-detail page after creating the project.
     def get_absolute_url(self):
@@ -44,8 +44,8 @@ class DatePoint(models.Model):
     # ForeignKey to Task.
     task = models.ForeignKey(Task, on_delete=models.CASCADE)
 
-    # ForeignKey to User.
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    # ForeignKey to Worker.
+    worker = models.ForeignKey(User, on_delete=models.CASCADE)
 
     # Description of the working.
     description = models.CharField(max_length=100)
