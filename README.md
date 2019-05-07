@@ -4,31 +4,19 @@ Link - http://138.68.102.10:55555
 
 Aktualne konta do logowania w bazie danych (plik db.sqlite3):
 
-1. Konto z uprawnieniami klienta:
+1. Przykładowe konto z uprawnieniami Kierownika:
 
-    - Login: Klient
-
-    - Hasło: qazxcdews
-
-    - Grupa: Klient
-
-2. Konto z uprawnieniami pracownika:
-
-    - Login: Pracownik
+    - Login: Manager1/Manager2
 
     - Hasło: qazxcdews
 
-    - Grupa: Pracownik
+2. Przykładowe konto z uprawnieniami pracownika:
 
-3. Konto bez uprawnień:
-
-    - Login: Alice
+    - Login: Worker1/Worker2
 
     - Hasło: qazxcdews
 
-    - Grupa: -
-
-4. Konto z uprawnieniami administratora (z dostępem do panelu admina):
+3. Konto z uprawnieniami administratora (z dostępem do panelu admina):
 
     - Login: admin
 
