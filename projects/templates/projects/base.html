@@ -28,6 +28,9 @@
             {% if perms.projects.add_project %}
                 <a class="nav-item nav-link" href="{% url 'project-create' %}">New Project</a>
             {% endif %}
+            {% if perms.auth.add_user %}
+                <a class="nav-item nav-link" href="{% url 'register' %}">New User</a>
+            {% endif %}
             {% endif %}
             </div>
             <!-- Navbar Right Side -->
