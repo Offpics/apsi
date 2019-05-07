@@ -1,13 +1,14 @@
 {% extends "projects/base.html" %}
 {% block content %}
-<p>{{ object.title }} </p>
+<p>Title: {{ object.title }} </p>
 
-<p>{{ object.description }}</p>
+<p>Description: {{ object.description }}</p>
 
+<p>Manager: {{ object.manager }}</p>
 
-<p>{{ object.user.all }}</p>
+<p>Workers: {{ object.user.all }}</p>
 
-<p>{{ object.task_set.all }}</p>
+<p>Tasks: {{ object.task_set.all }}</p>
 
 <p><a href="{% url 'task-create' object.id %}">Add new Task to the project</a></p>
 

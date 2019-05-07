@@ -15,6 +15,17 @@ class ProjectCreateView(LoginRequiredMixin,
                         CreateView):
     model = Project
     fields = ['title', 'description', 'user']
+
+    def form_valid(self, form):
+        # Get project by id.
+        manager = get_object_or_404(User, id=self.request.user.id)
+
+        # Append the form with returned project.
+        form.instance.manager = manager
+
+        # Create new Task.
+        return super(ProjectCreateView, self).form_valid(form)
+
     success_message = 'Project succesfully created!'
 
     permission_required = 'projects.add_project'
@@ -38,14 +49,13 @@ class ProjectUpdateView(PermissionRequiredMixin, UpdateView):
 
     fields = ['title', 'description', 'user']
 
-    permission_required = 'projects.update_project'
+    permission_required = 'projects.change_project'
 
 
 class MyProjectsListView(LoginRequiredMixin, ListView):
     """ Returns ListView with projects that authenticated user belongs to. """
     template_name = 'projects/project_list'
     context_object_name = 'projects'
-
 
     def get_queryset(self):
         self.user = get_object_or_404(User, id=self.request.user.id)

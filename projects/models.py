@@ -4,9 +4,18 @@ from django.contrib.auth.models import User
 
 
 class Project(models.Model):
+    # Title of the project.
     title = models.CharField(max_length=100)
+
+    # Description of the projet.
     description = models.TextField()
-    user = models.ManyToManyField(User)
+
+    # Manager of the project.
+    manager = models.ForeignKey(User, on_delete=models.CASCADE,
+                                related_name="manager_project_set")
+
+    # Workers assigned to the project.
+    user = models.ManyToManyField(User, related_name="user_project_set")
 
     def __str__(self):
         return f'{self.title}, {self.description}, {self.user}'
@@ -17,7 +26,10 @@ class Project(models.Model):
 
 
 class Task(models.Model):
+    # Title of the task.
     title = models.CharField(max_length=100)
+
+    # ForeignKey to Project.
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -26,3 +38,14 @@ class Task(models.Model):
     # Returns to project-detail page after creating task for the project.
     def get_absolute_url(self):
         return reverse('project-detail', kwargs={'pk': self.project.pk})
+
+
+class DatePoint(models.Model):
+    # ForeignKey to Task.
+    task = models.ForeignKey(Task, on_delete=models.CASCADE)
+
+    # ForeignKey to User.
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    # Description of the working.
+    description = models.CharField(max_length=100)

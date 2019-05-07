@@ -1,6 +1,7 @@
 from django.shortcuts import redirect, render
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.models import Group
 from .forms import UserRegisterForm
 
 
@@ -10,9 +11,18 @@ def register(request):
     if request.method == 'POST':
         form = UserRegisterForm(request.POST)
         if form.is_valid():
-            form.save()
+            user = form.save()
+
+            # Get group_name from the form and apply the user to it.
+            group_name = form.cleaned_data.get('group')
+            group = Group.objects.get(name=group_name)
+            user.groups.add(group)
+
+            # Display message.
             username = form.cleaned_data.get('username')
-            messages.success(request, f'User account: {username} has been created!')
+            messages.success(request,
+                             f'User account: {username} has been created!')
+
             return redirect('register')
     else:
         form = UserRegisterForm()
