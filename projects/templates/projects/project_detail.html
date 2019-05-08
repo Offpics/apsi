@@ -6,7 +6,13 @@
 
 <p>Manager: {{ object.manager }}</p>
 
-<p>Workers: {{ object.worker.all }}</p>
+<p>Workers: 
+    {% for worker in object.worker.all %}
+    <ul>
+        <li>{{ worker }}</li>
+    </ul>
+    {%endfor %}
+</p>
 
 <p>Tasks:
 
