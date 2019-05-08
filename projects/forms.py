@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import Project
+from .models import Project, Task, DatePoint
 
 
 class ProjectCreateForm(forms.ModelForm):
@@ -16,3 +16,16 @@ class ProjectCreateForm(forms.ModelForm):
         super(ProjectCreateForm, self).__init__(*args, **kwargs)
         queryset = User.objects.filter(groups__name='Worker')
         self.fields['worker'].queryset = queryset
+
+
+class DatePointCreateForm(forms.ModelForm):
+
+    class Meta:
+        model = DatePoint
+        fields = ['task', 'worked_time', 'description']
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user')
+        pk = kwargs.pop('pk')
+        super(DatePointCreateForm, self).__init__(*args, **kwargs)
+        self.fields['task'].queryset = Task.objects.filter(project__worker=user).filter(project__id=pk)

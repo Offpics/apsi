@@ -23,10 +23,14 @@
             <div class="navbar-nav mr-auto">
             {% if user.is_authenticated %}
             {% if perms.projects.view_project %}
+              {% if not request.user.is_staff %}
                 <a class="nav-item nav-link" href="{% url 'project-list' %}">Projects</a>
+              {% endif %}
             {% endif %}
             {% if perms.projects.add_project %}
+              {% if not request.user.is_staff %}
                 <a class="nav-item nav-link" href="{% url 'project-create' %}">New Project</a>
+              {% endif %}
             {% endif %}
             {% if perms.auth.add_user %}
                 <a class="nav-item nav-link" href="{% url 'register' %}">New User</a>

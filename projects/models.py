@@ -48,4 +48,14 @@ class DatePoint(models.Model):
     worker = models.ForeignKey(User, on_delete=models.CASCADE)
 
     # Description of the working.
-    description = models.CharField(max_length=100)
+    description = models.CharField(max_length=100, blank=True)
+
+    # Worked time.
+    worked_time = models.PositiveIntegerField()
+
+    # Time of the creation.
+    date_create = models.DateTimeField(auto_now=True)
+
+    # Returns to project-detail page after creating datepoint for the project.
+    def get_absolute_url(self):
+        return reverse('project-detail', kwargs={'pk': self.task.project.pk})

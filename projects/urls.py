@@ -8,6 +8,8 @@ from .views import (
     ProjectUpdateView,
     TaskCreateView,
     TaskDetailView,
+    TaskUpdateView,
+    DatePointCreateView,
 )
 
 urlpatterns = [
@@ -18,6 +20,8 @@ urlpatterns = [
          name='project-detail'),
     path('projects/<int:pk>/update', ProjectUpdateView.as_view(), name='project-update'),
     # path('myprojects/', MyProjectsListView.as_view(), name='myprojects'),
-    path('projects/task/new/<int:pk>', TaskCreateView.as_view(), name='task-create'),
-    path('projects/task/<int:pk>', TaskDetailView.as_view(), name='task-detail'),
+    path('projects/task/new/<int:pk>/', TaskCreateView.as_view(), name='task-create'),
+    path('projects/task/<int:pk>/', TaskDetailView.as_view(), name='task-detail'),
+    path('projects/task/update/<int:pk>/', TaskUpdateView.as_view(), name='task-update'),
+    path('projects/datepoint/new/<int:pk>/', DatePointCreateView.as_view(), name='datepoint-create'),
 ]

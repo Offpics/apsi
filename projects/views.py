@@ -6,8 +6,8 @@ from django.contrib.auth.mixins import (
     PermissionRequiredMixin
 )
 from django.contrib.messages.views import SuccessMessageMixin
-from .models import Project, Task
-from .forms import ProjectCreateForm
+from .models import Project, Task, DatePoint
+from .forms import ProjectCreateForm, DatePointCreateForm
 
 
 class ProjectCreateView(LoginRequiredMixin,
@@ -93,8 +93,50 @@ class TaskCreateView(LoginRequiredMixin,
     permission_required = 'projects.add_task'
 
 
-class TaskDetailView(DetailView):
+class TaskDetailView(PermissionRequiredMixin, DetailView):
     model = Task
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get a context.
+        context = super().get_context_data(**kwargs)
+
+        # Add in a QuerySet of all the datepoints.
+        context['datepoint_list'] = DatePoint.objects.filter(task__id=self.kwargs['pk'])
+        return context
+
+    permission_required = 'projects.view_task'
+
+
+class TaskUpdateView(PermissionRequiredMixin, UpdateView):
+    model = Task
+    fields = ['title']
+
+    permission_required = 'projects.change_task'
+
+
+class DatePointCreateView(PermissionRequiredMixin, CreateView):
+    form_class = DatePointCreateForm
+    template_name = 'projects/datepoint_form.html'
+
+    def get_form_kwargs(self):
+        kwargs = super(DatePointCreateView, self).get_form_kwargs()
+
+        # Add current user to the form.
+        kwargs['user'] = self.request.user
+
+        # Add curent project id to the form.
+        kwargs['pk'] = self.kwargs['pk']
+
+        return kwargs
+
+    def form_valid(self, form):
+        worker = get_object_or_404(User, id=self.request.user.id)
+
+        form.instance.worker = worker
+
+        return super(DatePointCreateView, self).form_valid(form)
+
+    permission_required = 'projects.add_datepoint'
 
 
 def home(request):

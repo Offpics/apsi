@@ -14,7 +14,17 @@
     <a href="{% url 'task-detail' task.id %}">{{ task.title }}</a>
 {% endfor %}
 </p>
-<p><a href="{% url 'task-create' object.id %}">Add new Task to the project</a></p>
 
-<p><a href="{% url 'project-update' object.id %}">Update Current Project</a></p>
+{% if perms.projects.add_task %}
+    <p><a href="{% url 'task-create' object.id %}">Add new Task to the project</a></p>
+{% endif %}
+
+{% if perms.projects.change_project %}
+    <p><a href="{% url 'project-update' object.id %}">Update Current Project</a></p>
+{% endif %}
+
+{% if perms.projects.add_datepoint %}
+    <p><a href="{% url 'datepoint-create' object.id %}">Add Datepoint</a></p>
+{% endif %}
+
 {% endblock content %}
