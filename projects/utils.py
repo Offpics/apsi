@@ -18,7 +18,7 @@ def does_user_belongs_to_project(user_id, project_pk):
 
 
 def does_user_belongs_to_task(user_id, task_pk):
-    """ Check wheter user belongs to the project. """
+    """ Check wheter user belongs to the task. """
     user = get_object_or_404(User, id=user_id)
     if user.groups.all()[0].name == 'Worker':
         queryset = Task.objects.filter(id=task_pk, project__worker=user)
