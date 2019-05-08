@@ -3,11 +3,13 @@ from django.contrib.auth.models import User
 from django.views.generic import CreateView, DetailView, ListView, UpdateView
 from django.contrib.auth.mixins import (
     LoginRequiredMixin,
-    PermissionRequiredMixin
+    PermissionRequiredMixin,
+    UserPassesTestMixin
 )
 from django.contrib.messages.views import SuccessMessageMixin
 from .models import Project, Task, DatePoint
 from .forms import ProjectCreateForm, DatePointCreateForm
+from .utils import does_user_belongs_to_project, does_user_belongs_to_task
 
 
 class ProjectCreateView(LoginRequiredMixin,
@@ -33,8 +35,14 @@ class ProjectCreateView(LoginRequiredMixin,
     permission_required = 'projects.add_project'
 
 
-class ProjectDetailView(PermissionRequiredMixin, DetailView):
+class ProjectDetailView(PermissionRequiredMixin, UserPassesTestMixin,
+                        DetailView):
     model = Project
+
+    def test_func(self):
+        """ Check wheter user belongs to the project. """
+        return does_user_belongs_to_project(user_id=self.request.user.id,
+                                            project_pk=self.kwargs['pk'])
 
     permission_required = 'projects.view_project'
 
@@ -46,11 +54,21 @@ class ProjectListView(PermissionRequiredMixin, ListView):
     permission_required = 'projects.view_project'
 
 
-class ProjectUpdateView(PermissionRequiredMixin, UpdateView):
+class ProjectUpdateView(PermissionRequiredMixin,
+                        UserPassesTestMixin,
+                        SuccessMessageMixin,
+                        UpdateView):
     model = Project
 
     form_class = ProjectCreateForm
     template_name = "projects/project_form.html"
+
+    def test_func(self):
+        """ Check wheter user belongs to the project. """
+        return does_user_belongs_to_project(user_id=self.request.user.id,
+                                            project_pk=self.kwargs['pk'])
+
+    success_message = 'Project succesfully updated!'
 
     permission_required = 'projects.change_project'
 
@@ -93,7 +111,7 @@ class TaskCreateView(LoginRequiredMixin,
     permission_required = 'projects.add_task'
 
 
-class TaskDetailView(PermissionRequiredMixin, DetailView):
+class TaskDetailView(PermissionRequiredMixin, UserPassesTestMixin, DetailView):
     model = Task
 
     def get_context_data(self, **kwargs):
@@ -104,17 +122,34 @@ class TaskDetailView(PermissionRequiredMixin, DetailView):
         context['datepoint_list'] = DatePoint.objects.filter(task__id=self.kwargs['pk'])
         return context
 
+    def test_func(self):
+        """ Check wheter user belongs to the task. """
+        return does_user_belongs_to_task(user_id=self.request.user.id,
+                                         task_pk=self.kwargs['pk'])
+
     permission_required = 'projects.view_task'
 
 
-class TaskUpdateView(PermissionRequiredMixin, UpdateView):
+class TaskUpdateView(PermissionRequiredMixin,
+                     UserPassesTestMixin,
+                     SuccessMessageMixin,
+                     UpdateView):
     model = Task
     fields = ['title']
+
+    def test_func(self):
+        """ Check wheter user belongs to the task. """
+        return does_user_belongs_to_task(user_id=self.request.user.id,
+                                         task_pk=self.kwargs['pk'])
+
+    success_message = 'Task succesfully updated!'
 
     permission_required = 'projects.change_task'
 
 
-class DatePointCreateView(PermissionRequiredMixin, CreateView):
+class DatePointCreateView(PermissionRequiredMixin,
+                          SuccessMessageMixin,
+                          CreateView):
     form_class = DatePointCreateForm
     template_name = 'projects/datepoint_form.html'
 
@@ -135,6 +170,8 @@ class DatePointCreateView(PermissionRequiredMixin, CreateView):
         form.instance.worker = worker
 
         return super(DatePointCreateView, self).form_valid(form)
+
+    success_message = 'DatePoint succesfully created!'
 
     permission_required = 'projects.add_datepoint'
 
