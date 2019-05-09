@@ -119,7 +119,8 @@ class TaskDetailView(PermissionRequiredMixin, UserPassesTestMixin, DetailView):
         context = super().get_context_data(**kwargs)
 
         # Add in a QuerySet of all the datepoints.
-        context['datepoint_list'] = DatePoint.objects.filter(task__id=self.kwargs['pk'])
+        datepoint_list = DatePoint.objects.filter(task__id=self.kwargs['pk'])
+        context['datepoint_list'] = datepoint_list
         return context
 
     def test_func(self):
