@@ -9,7 +9,7 @@ from django.contrib.auth.mixins import (
 from django.contrib.messages.views import SuccessMessageMixin
 from .models import Project, Task, DatePoint
 from .forms import ProjectCreateForm, DatePointCreateForm
-from .utils import does_user_belongs_to_project, does_user_belongs_to_task
+from .mixins import UserBelongsToProjectMixin, UserBelongsToTaskMixin
 
 
 class ProjectCreateView(LoginRequiredMixin,
@@ -35,14 +35,9 @@ class ProjectCreateView(LoginRequiredMixin,
     permission_required = 'projects.add_project'
 
 
-class ProjectDetailView(PermissionRequiredMixin, UserPassesTestMixin,
+class ProjectDetailView(PermissionRequiredMixin, UserBelongsToProjectMixin,
                         DetailView):
     model = Project
-
-    def test_func(self):
-        """ Check wheter user belongs to the project. """
-        return does_user_belongs_to_project(user_id=self.request.user.id,
-                                            project_pk=self.kwargs['pk'])
 
     permission_required = 'projects.view_project'
 
@@ -55,18 +50,13 @@ class ProjectListView(PermissionRequiredMixin, ListView):
 
 
 class ProjectUpdateView(PermissionRequiredMixin,
-                        UserPassesTestMixin,
+                        UserBelongsToProjectMixin,
                         SuccessMessageMixin,
                         UpdateView):
     model = Project
 
     form_class = ProjectCreateForm
     template_name = "projects/project_form.html"
-
-    def test_func(self):
-        """ Check wheter user belongs to the project. """
-        return does_user_belongs_to_project(user_id=self.request.user.id,
-                                            project_pk=self.kwargs['pk'])
 
     success_message = 'Project succesfully updated!'
 
@@ -111,7 +101,9 @@ class TaskCreateView(LoginRequiredMixin,
     permission_required = 'projects.add_task'
 
 
-class TaskDetailView(PermissionRequiredMixin, UserPassesTestMixin, DetailView):
+class TaskDetailView(PermissionRequiredMixin, 
+                     UserBelongsToTaskMixin,
+                     DetailView):
     model = Task
 
     def get_context_data(self, **kwargs):
@@ -123,25 +115,15 @@ class TaskDetailView(PermissionRequiredMixin, UserPassesTestMixin, DetailView):
         context['datepoint_list'] = datepoint_list
         return context
 
-    def test_func(self):
-        """ Check wheter user belongs to the task. """
-        return does_user_belongs_to_task(user_id=self.request.user.id,
-                                         task_pk=self.kwargs['pk'])
-
     permission_required = 'projects.view_task'
 
 
 class TaskUpdateView(PermissionRequiredMixin,
-                     UserPassesTestMixin,
+                     UserBelongsToTaskMixin,
                      SuccessMessageMixin,
                      UpdateView):
     model = Task
     fields = ['title']
-
-    def test_func(self):
-        """ Check wheter user belongs to the task. """
-        return does_user_belongs_to_task(user_id=self.request.user.id,
-                                         task_pk=self.kwargs['pk'])
 
     success_message = 'Task succesfully updated!'
 
