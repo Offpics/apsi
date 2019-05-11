@@ -1,6 +1,6 @@
+from django.contrib.auth.models import User
 from django.db import models
 from django.urls import reverse
-from django.contrib.auth.models import User
 
 
 class Project(models.Model):
@@ -11,18 +11,19 @@ class Project(models.Model):
     description = models.TextField()
 
     # Manager of the project.
-    manager = models.ForeignKey(User, on_delete=models.CASCADE,
-                                related_name="manager_project_set")
+    manager = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="manager_project_set"
+    )
 
     # Workers assigned to the project.
     worker = models.ManyToManyField(User, related_name="worker_project_set")
 
     def __str__(self):
-        return f'{self.title}, {self.description}, {self.worker}'
+        return f"{self.title}, {self.description}, {self.worker}"
 
     # Returns to project-detail page after creating the project.
     def get_absolute_url(self):
-        return reverse('project-detail', kwargs={'pk': self.pk})
+        return reverse("project-detail", kwargs={"pk": self.pk})
 
 
 class Task(models.Model):
@@ -33,11 +34,11 @@ class Task(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f'{self.title}'
+        return f"{self.title}"
 
     # Returns to project-detail page after creating task for the project.
     def get_absolute_url(self):
-        return reverse('project-detail', kwargs={'pk': self.project.pk})
+        return reverse("project-detail", kwargs={"pk": self.project.pk})
 
 
 class DatePoint(models.Model):
@@ -58,4 +59,4 @@ class DatePoint(models.Model):
 
     # Returns to project-detail page after creating datepoint for the project.
     def get_absolute_url(self):
-        return reverse('project-detail', kwargs={'pk': self.task.project.pk})
+        return reverse("project-detail", kwargs={"pk": self.task.project.pk})

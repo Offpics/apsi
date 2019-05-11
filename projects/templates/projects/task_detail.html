@@ -5,15 +5,16 @@
 <!-- <p>Project: {{ object.project }}</p> -->
 
 {% if perms.projects.change_task %}
-    <p><a href="{% url 'task-update' object.id %}">Update Current Task</a></p>
+<p><a href="{% url 'task-update' object.id %}">Update Current Task</a></p>
 {% endif %}
 
 {% if datepoint_list %}
-    Datepoint list:
+Datepoint list:
 {% endif %}
 {% for datepoint in datepoint_list %}
 <ul>
-<li>Worker: {{datepoint.worker}}, Worked_time: {{ datepoint.worked_time }}, Description: {{ datepoint.description }}</li>
+    <li>Worker: {{datepoint.worker}}, Worked_time: {{ datepoint.worked_time }}, Description: {{ datepoint.description }}
+    </li>
 </ul>
 {% endfor %}
 

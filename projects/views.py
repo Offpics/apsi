@@ -1,21 +1,23 @@
-from django.shortcuts import render, get_object_or_404
-from django.contrib.auth.models import User
-from django.views.generic import CreateView, DetailView, ListView, UpdateView
 from django.contrib.auth.mixins import (
     LoginRequiredMixin,
     PermissionRequiredMixin,
-    UserPassesTestMixin
 )
+from django.contrib.auth.models import User
 from django.contrib.messages.views import SuccessMessageMixin
-from .models import Project, Task, DatePoint
-from .forms import ProjectCreateForm, DatePointCreateForm
+from django.shortcuts import get_object_or_404, render
+from django.views.generic import CreateView, DetailView, ListView, UpdateView
+
+from .forms import DatePointCreateForm, ProjectCreateForm
 from .mixins import UserBelongsToProjectMixin, UserBelongsToTaskMixin
+from .models import DatePoint, Project, Task
 
 
-class ProjectCreateView(LoginRequiredMixin,
-                        PermissionRequiredMixin,
-                        SuccessMessageMixin,
-                        CreateView):
+class ProjectCreateView(
+    LoginRequiredMixin,
+    PermissionRequiredMixin,
+    SuccessMessageMixin,
+    CreateView,
+):
 
     form_class = ProjectCreateForm
     template_name = "projects/project_form.html"
@@ -30,65 +32,71 @@ class ProjectCreateView(LoginRequiredMixin,
         # Create new Task.
         return super(ProjectCreateView, self).form_valid(form)
 
-    success_message = 'Project succesfully created!'
+    success_message = "Project succesfully created!"
 
-    permission_required = 'projects.add_project'
+    permission_required = "projects.add_project"
 
 
-class ProjectDetailView(PermissionRequiredMixin, UserBelongsToProjectMixin,
-                        DetailView):
+class ProjectDetailView(
+    PermissionRequiredMixin, UserBelongsToProjectMixin, DetailView
+):
     model = Project
 
-    permission_required = 'projects.view_project'
+    permission_required = "projects.view_project"
 
 
 class ProjectListView(PermissionRequiredMixin, ListView):
     model = Project
-    context_object_name = 'projects'
+    context_object_name = "projects"
 
-    permission_required = 'projects.view_project'
+    permission_required = "projects.view_project"
 
 
-class ProjectUpdateView(PermissionRequiredMixin,
-                        UserBelongsToProjectMixin,
-                        SuccessMessageMixin,
-                        UpdateView):
+class ProjectUpdateView(
+    PermissionRequiredMixin,
+    UserBelongsToProjectMixin,
+    SuccessMessageMixin,
+    UpdateView,
+):
     model = Project
 
     form_class = ProjectCreateForm
     template_name = "projects/project_form.html"
 
-    success_message = 'Project succesfully updated!'
+    success_message = "Project succesfully updated!"
 
-    permission_required = 'projects.change_project'
+    permission_required = "projects.change_project"
 
 
 class MyProjectsListView(LoginRequiredMixin, ListView):
     """ Returns ListView with projects that authenticated user belongs to. """
-    template_name = 'projects/project_list'
-    context_object_name = 'projects'
+
+    template_name = "projects/project_list"
+    context_object_name = "projects"
 
     def get_queryset(self):
         user = get_object_or_404(User, id=self.request.user.id)
         queryset = Project.objects.filter(manager=user)
-        if (len(queryset) == 0):
+        if len(queryset) == 0:
             queryset = Project.objects.filter(worker=user)
         return queryset
 
 
-class TaskCreateView(LoginRequiredMixin,
-                     PermissionRequiredMixin,
-                     SuccessMessageMixin,
-                     CreateView):
+class TaskCreateView(
+    LoginRequiredMixin,
+    PermissionRequiredMixin,
+    SuccessMessageMixin,
+    CreateView,
+):
     model = Task
-    fields = ['title']
+    fields = ["title"]
 
     # This function is called when valid form data has been Posted.
     # It gets current project id from url and attach it to the new Task
     # and saving it.
     def form_valid(self, form):
         # Get project by id.
-        project = get_object_or_404(Project, id=self.kwargs['pk'])
+        project = get_object_or_404(Project, id=self.kwargs["pk"])
 
         # Append the form with returned project.
         form.instance.project = project
@@ -96,14 +104,14 @@ class TaskCreateView(LoginRequiredMixin,
         # Create new Task.
         return super(TaskCreateView, self).form_valid(form)
 
-    success_message = 'Task succesfully created!'
+    success_message = "Task succesfully created!"
 
-    permission_required = 'projects.add_task'
+    permission_required = "projects.add_task"
 
 
-class TaskDetailView(PermissionRequiredMixin, 
-                     UserBelongsToTaskMixin,
-                     DetailView):
+class TaskDetailView(
+    PermissionRequiredMixin, UserBelongsToTaskMixin, DetailView
+):
     model = Task
 
     def get_context_data(self, **kwargs):
@@ -111,39 +119,41 @@ class TaskDetailView(PermissionRequiredMixin,
         context = super().get_context_data(**kwargs)
 
         # Add in a QuerySet of all the datepoints.
-        datepoint_list = DatePoint.objects.filter(task__id=self.kwargs['pk'])
-        context['datepoint_list'] = datepoint_list
+        datepoint_list = DatePoint.objects.filter(task__id=self.kwargs["pk"])
+        context["datepoint_list"] = datepoint_list
         return context
 
-    permission_required = 'projects.view_task'
+    permission_required = "projects.view_task"
 
 
-class TaskUpdateView(PermissionRequiredMixin,
-                     UserBelongsToTaskMixin,
-                     SuccessMessageMixin,
-                     UpdateView):
+class TaskUpdateView(
+    PermissionRequiredMixin,
+    UserBelongsToTaskMixin,
+    SuccessMessageMixin,
+    UpdateView,
+):
     model = Task
-    fields = ['title']
+    fields = ["title"]
 
-    success_message = 'Task succesfully updated!'
+    success_message = "Task succesfully updated!"
 
-    permission_required = 'projects.change_task'
+    permission_required = "projects.change_task"
 
 
-class DatePointCreateView(PermissionRequiredMixin,
-                          SuccessMessageMixin,
-                          CreateView):
+class DatePointCreateView(
+    PermissionRequiredMixin, SuccessMessageMixin, CreateView
+):
     form_class = DatePointCreateForm
-    template_name = 'projects/datepoint_form.html'
+    template_name = "projects/datepoint_form.html"
 
     def get_form_kwargs(self):
         kwargs = super(DatePointCreateView, self).get_form_kwargs()
 
         # Add current user to the form.
-        kwargs['user'] = self.request.user
+        kwargs["user"] = self.request.user
 
         # Add curent project id to the form.
-        kwargs['pk'] = self.kwargs['pk']
+        kwargs["pk"] = self.kwargs["pk"]
 
         return kwargs
 
@@ -154,10 +164,10 @@ class DatePointCreateView(PermissionRequiredMixin,
 
         return super(DatePointCreateView, self).form_valid(form)
 
-    success_message = 'DatePoint succesfully created!'
+    success_message = "DatePoint succesfully created!"
 
-    permission_required = 'projects.add_datepoint'
+    permission_required = "projects.add_datepoint"
 
 
 def home(request):
-    return render(request, 'projects/home.html')
+    return render(request, "projects/home.html")
