@@ -19,7 +19,7 @@ class Project(models.Model):
     worker = models.ManyToManyField(User, related_name="worker_project_set")
 
     def __str__(self):
-        return f"{self.title}, {self.description}, {self.worker}"
+        return f"{self.title}, {self.manager}"
 
     # Returns to project-detail page after creating the project.
     def get_absolute_url(self):
@@ -55,7 +55,7 @@ class DatePoint(models.Model):
     worked_time = models.PositiveIntegerField()
 
     # Time of the creation.
-    date_create = models.DateTimeField(auto_now=True)
+    date_created = models.DateTimeField(auto_now=True)
 
     # Returns to project-detail page after creating datepoint for the project.
     def get_absolute_url(self):
