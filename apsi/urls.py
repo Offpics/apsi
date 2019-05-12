@@ -18,7 +18,7 @@ Including another URLconf
 """
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('projects.urls')),
-    path('', include('users.urls')),
+    path("admin/", admin.site.urls),
+    path("", include("projects.urls")),
+    path("", include("users.urls")),
 ]
