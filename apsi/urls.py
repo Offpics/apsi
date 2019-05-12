@@ -22,3 +22,5 @@ urlpatterns = [
     path("", include("projects.urls")),
     path("", include("users.urls")),
 ]
+
+admin.site.site_header = "Apsi Administration"
