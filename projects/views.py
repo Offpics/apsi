@@ -68,7 +68,9 @@ class ProjectUpdateView(
     permission_required = "projects.change_project"
 
 
-class MyProjectsListView(LoginRequiredMixin, ListView):
+class MyProjectsListView(
+    LoginRequiredMixin, PermissionRequiredMixin, ListView
+):
     """ Returns ListView with projects that authenticated user belongs to. """
 
     template_name = "projects/project_list"
@@ -80,6 +82,8 @@ class MyProjectsListView(LoginRequiredMixin, ListView):
         if len(queryset) == 0:
             queryset = Project.objects.filter(worker=user)
         return queryset
+
+    permission_required = "projects.view_project"
 
 
 class TaskCreateView(
