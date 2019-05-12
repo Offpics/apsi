@@ -37,7 +37,7 @@ class UserBelongsToTaskMixin(UserPassesTestMixin):
                     return True
             elif user.groups.all()[0].name == "Manager":
                 queryset = Task.objects.filter(
-                    id=task_pk, project__worker=user
+                    id=task_pk, project__manager=user
                 )
                 if queryset.count() > 0:
                     return True
