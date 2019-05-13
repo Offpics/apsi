@@ -13,7 +13,8 @@ Datepoint list:
 {% endif %}
 {% for datepoint in datepoint_list %}
 <ul>
-    <li>Worker: {{datepoint.worker}}, Worked_time: {{ datepoint.worked_time }}, Description: {{ datepoint.description }}
+    <li>Worker: {{datepoint.worker}}, Worked_date: {{ datepoint.worked_date }}, Worked_time:
+        {{ datepoint.worked_time }}, Description: {{ datepoint.description }}
     </li>
 </ul>
 {% endfor %}

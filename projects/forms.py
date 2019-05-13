@@ -20,9 +20,13 @@ class ProjectCreateForm(forms.ModelForm):
 
 
 class DatePointCreateForm(forms.ModelForm):
+    worked_date = forms.DateField(
+        widget=forms.TextInput(attrs={"type": "date"})
+    )
+
     class Meta:
         model = DatePoint
-        fields = ["task", "worked_time", "description"]
+        fields = ["task", "worked_date", "worked_time", "description"]
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user")

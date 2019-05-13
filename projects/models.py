@@ -54,6 +54,9 @@ class DatePoint(models.Model):
     # Worked time.
     worked_time = models.PositiveIntegerField()
 
+    # Worked date.
+    worked_date = models.DateField()
+
     # Time of the creation.
     date_created = models.DateTimeField(auto_now=True)
 

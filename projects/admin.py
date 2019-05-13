@@ -20,6 +20,7 @@ class DatePointAdmin(admin.ModelAdmin):
     list_display = (
         "task",
         "worker",
+        "worked_date",
         "worked_time",
         "date_created",
         "description",
@@ -28,6 +29,7 @@ class DatePointAdmin(admin.ModelAdmin):
     readonly_fields = (
         "task",
         "worker",
+        "worked_date",
         "worked_time",
         "date_created",
         "description",
