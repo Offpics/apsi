@@ -1,0 +1,9 @@
+{% extends "projects/base.html" %}
+{% block content %}
+<p>Worker: {{ object.worker }} </p>
+<p>Task: {{ object.task.title }} </p>
+<p>Worked Date: {{ object.worked_date }} </p>
+<p>Worked Time: {{ object.worked_time }} hours</p>
+
+
+{% endblock content %}

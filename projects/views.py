@@ -1,3 +1,5 @@
+import json
+
 from django.contrib.auth.mixins import (
     LoginRequiredMixin,
     PermissionRequiredMixin,
@@ -5,9 +7,9 @@ from django.contrib.auth.mixins import (
 from django.contrib.auth.models import User
 from django.contrib.messages.views import SuccessMessageMixin
 from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
 from django.views.generic import CreateView, DetailView, ListView, UpdateView
 from django.views.generic.edit import FormMixin
-from django.urls import reverse
 
 from .forms import DatePointCreateForm, ProjectCreateForm, TestForm
 from .mixins import UserBelongsToProjectMixin, UserBelongsToTaskMixin
@@ -66,7 +68,25 @@ class ProjectDetailView(
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        # Populate context with form.
         context["form"] = self.get_form()
+
+        # Populate context with info about tasks.
+        queryset = DatePoint.objects.filter(task__project_id=self.kwargs["pk"])
+
+        datepoints = [
+            {
+                "title": item.worker.username,
+                "start": item.worked_date.strftime("%Y-%m-%d"),
+                "url": reverse("datepoint-detail", kwargs={"pk": item.id}),
+            }
+            for item in queryset
+        ]
+
+        print(datepoints)
+        context["datepoints"] = json.dumps(datepoints)
+
         return context
 
     def post(self, request, *args, **kwargs):
@@ -217,6 +237,12 @@ class DatePointCreateView(
     success_message = "DatePoint succesfully created!"
 
     permission_required = "projects.add_datepoint"
+
+
+class DatePointDetailView(DetailView, PermissionRequiredMixin):
+    model = DatePoint
+
+    permission_required = "projects.view_datepoint"
 
 
 def home(request):

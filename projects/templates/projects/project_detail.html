@@ -10,14 +10,34 @@
 
 <script src="{% static 'projects/fullcalendar/core/main.js' %}"></script>
 <script src="{% static 'projects/fullcalendar/daygrid/main.js' %}"></script>
+<script src="{% static 'projects/fullcalendar/interaction/main.js' %}"></script>
+<script src="{% static 'projects/fullcalendar/bootstrap/main.js' %}"></script>
+<script src="{% static 'projects/fullcalendar/timegrid/main.js' %}"></script>
+
 
 <script>
+    var temp = JSON.parse("{{ datepoints|escapejs }}")
+
 
     document.addEventListener('DOMContentLoaded', function () {
         var calendarEl = document.getElementById('calendar');
 
         var calendar = new FullCalendar.Calendar(calendarEl, {
-            plugins: ['dayGrid']
+            plugins: ['interaction', 'dayGrid', 'bootstrap', 'timeGrid'],
+            header: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            dateClick: function (info) {
+                // window.location.href = "{% url 'project-list' %}";
+                alert('Clicked on: ' + info.dateStr);
+                alert('Coordinates: ' + info.jsEvent.pageX + ',' + info.jsEvent.pageY);
+                alert('Current view: ' + info.view.type);
+                // change the day's background color just for fun
+                info.dayEl.style.backgroundColor = 'red';
+            },
+            events: temp,
         });
 
         calendar.render();
@@ -63,6 +83,7 @@
 {% endif %}
 
 
+<div id='calendar'></div>
 
 {% if perms.projects.add_datepoint %}
 <div class="content-section">
@@ -77,6 +98,5 @@
 {% endif %}
 
 
-<div id='calendar'></div>
 
 {% endblock content %}

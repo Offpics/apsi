@@ -9,6 +9,7 @@ from .views import (
     TaskCreateView,
     TaskDetailView,
     TaskUpdateView,
+    DatePointDetailView,
     home,
 )
 
@@ -38,5 +39,10 @@ urlpatterns = [
         "datepoint/new/<int:pk>/",
         DatePointCreateView.as_view(),
         name="datepoint-create",
+    ),
+    path(
+        "datepoint/<int:pk>/",
+        DatePointDetailView.as_view(),
+        name="datepoint-detail",
     ),
 ]
