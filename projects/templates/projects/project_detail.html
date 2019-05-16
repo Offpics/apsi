@@ -1,4 +1,5 @@
 {% extends "projects/base.html" %}
+{% load crispy_forms_tags %}
 {% block content %}
 <p>Title: {{ object.title }} </p>
 
@@ -31,6 +32,20 @@
 
 {% if perms.projects.add_datepoint %}
 <p><a href="{% url 'datepoint-create' object.id %}">Add Datepoint</a></p>
+{% endif %}
+
+
+
+{% if perms.projects.add_datepoint %}
+<div class="content-section">
+    <form method="POST">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <div class="form-group">
+            <button class="btn btn-outline-info" type="submit">Post</button>
+        </div>
+    </form>
+</div>
 {% endif %}
 
 {% endblock content %}
