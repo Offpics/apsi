@@ -23,7 +23,7 @@ class Project(models.Model):
 
     # Returns to project-detail page after creating the project.
     def get_absolute_url(self):
-        return reverse("project-detail", kwargs={"pk": self.pk})
+        return reverse("project-detail", kwargs={"project_pk": self.pk})
 
 
 class Task(models.Model):
@@ -38,7 +38,9 @@ class Task(models.Model):
 
     # Returns to project-detail page after creating task for the project.
     def get_absolute_url(self):
-        return reverse("project-detail", kwargs={"pk": self.project.pk})
+        return reverse(
+            "project-detail", kwargs={"project_pk": self.project.pk}
+        )
 
 
 class DatePoint(models.Model):
@@ -68,4 +70,6 @@ class DatePoint(models.Model):
 
     # Returns to project-detail page after creating datepoint for the project.
     def get_absolute_url(self):
-        return reverse("project-detail", kwargs={"pk": self.task.project.pk})
+        return reverse(
+            "project-detail", kwargs={"project_pk": self.task.project.pk}
+        )
