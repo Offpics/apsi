@@ -11,10 +11,10 @@ from django.urls import reverse
 from django.views.generic import CreateView, DetailView, ListView, UpdateView
 from django.views.generic.edit import FormMixin
 
-from .utils import colors
 from .forms import DatePointCreateForm, ProjectCreateForm, TestForm
 from .mixins import UserBelongsToProjectMixin, UserBelongsToTaskMixin
 from .models import DatePoint, Project, Task
+from .utils import colors
 
 
 class ProjectCreateView(
@@ -83,6 +83,8 @@ class ProjectDetailView(
         queryset = DatePoint.objects.filter(task__project_id=self.kwargs["pk"])
 
         # Set of unique tasks in queryset.
+        # TODO: Check wheter it is more optimal to use set comprehension here
+        # or a distinc query.
         tasks = {datepoint.task.id for datepoint in queryset}
 
         # Assign one color to one task and create dict of it.
