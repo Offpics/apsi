@@ -4,6 +4,7 @@ from django.contrib.auth.mixins import (
     LoginRequiredMixin,
     PermissionRequiredMixin,
 )
+from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.messages.views import SuccessMessageMixin
 from django.shortcuts import get_object_or_404, render
@@ -12,7 +13,11 @@ from django.views.generic import CreateView, DetailView, ListView, UpdateView
 from django.views.generic.edit import FormMixin
 
 from .forms import DatePointCreateForm, ProjectCreateForm, TestForm
-from .mixins import UserBelongsToProjectMixin, UserBelongsToTaskMixin
+from .mixins import (
+    UserBelongsToProjectMixin,
+    UserBelongsToTaskMixin,
+    UserCanViewDatePointDetail,
+)
 from .models import DatePoint, Project, Task
 from .utils import colors
 
@@ -71,7 +76,7 @@ class ProjectDetailView(
 
         # Add data that is used to render TestForm.
         kwargs["user"] = self.request.user
-        kwargs["pk"] = self.kwargs["pk"]
+        kwargs["project_pk"] = self.kwargs["pk"]
 
         return kwargs
 
@@ -100,7 +105,6 @@ class ProjectDetailView(
 
         # Assign one color to one task and create dict of it.
         tasks_color = dict(zip(tasks, colors))
-        print(tasks_color)
 
         # Create list of dictionaries that is used to populate calendar events.
         datepoints = [
@@ -134,6 +138,7 @@ class ProjectDetailView(
         form.instance.worker = worker
 
         form.save()
+        messages.success(self.request, "Datepoint succesfully created!")
 
         return super(ProjectDetailView, self).form_valid(form)
 
@@ -272,7 +277,7 @@ class DatePointCreateView(
         kwargs["user"] = self.request.user
 
         # Add curent project id to the form.
-        kwargs["pk"] = self.kwargs["pk"]
+        kwargs["project_pk"] = self.kwargs["pk"]
 
         return kwargs
 
@@ -288,13 +293,17 @@ class DatePointCreateView(
     permission_required = "projects.add_datepoint"
 
 
-class DatePointDetailView(PermissionRequiredMixin, DetailView):
+class DatePointDetailView(
+    PermissionRequiredMixin, UserCanViewDatePointDetail, DetailView
+):
     model = DatePoint
 
     permission_required = "projects.view_datepoint"
 
 
-class DatePointListView(PermissionRequiredMixin, ListView):
+class DatePointListView(
+    PermissionRequiredMixin, UserBelongsToProjectMixin, ListView
+):
     model = DatePoint
 
     context_object_name = "datepoints"
@@ -303,7 +312,7 @@ class DatePointListView(PermissionRequiredMixin, ListView):
 
         # Get new queryset
         queryset = DatePoint.objects.filter(
-            task__project_id=self.kwargs["project_pk"]
+            task__project_id=self.kwargs["pk"]
         ).filter(worked_date=self.kwargs["date"])
 
         return queryset

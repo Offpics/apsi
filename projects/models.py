@@ -60,6 +60,9 @@ class DatePoint(models.Model):
     # Time of the creation.
     date_created = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return f"Worker: {self.worker}, Task: {self.task}"
+
     # Returns to project-detail page after creating datepoint for the project.
     def get_absolute_url(self):
         return reverse("project-detail", kwargs={"pk": self.task.project.pk})

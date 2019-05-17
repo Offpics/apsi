@@ -30,7 +30,7 @@ class DatePointCreateForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user")
-        pk = kwargs.pop("pk")
+        pk = kwargs.pop("project_pk")
         super(DatePointCreateForm, self).__init__(*args, **kwargs)
         queryset = Task.objects.filter(project__worker=user).filter(
             project__id=pk
@@ -49,7 +49,7 @@ class TestForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user")
-        pk = kwargs.pop("pk")
+        pk = kwargs.pop("project_pk")
         super(TestForm, self).__init__(*args, **kwargs)
         queryset = Task.objects.filter(project__worker=user).filter(
             project__id=pk

@@ -1,6 +1,6 @@
 from django.contrib.auth.mixins import UserPassesTestMixin
 
-from .models import Project, Task
+from .models import Project, Task, DatePoint
 
 
 class UserBelongsToProjectMixin(UserPassesTestMixin):
@@ -9,6 +9,9 @@ class UserBelongsToProjectMixin(UserPassesTestMixin):
     def test_func(self):
         user = self.request.user
         project_pk = self.kwargs["pk"]
+        return self.check_user(user, project_pk)
+
+    def check_user(self, user, project_pk):
         if user.groups.count() > 0:
             if user.groups.all()[0].name == "Worker":
                 queryset = Project.objects.filter(id=project_pk, worker=user)
@@ -43,3 +46,22 @@ class UserBelongsToTaskMixin(UserPassesTestMixin):
                     return True
         else:
             return False
+
+
+class UserCanViewDatePointDetail(
+    UserBelongsToProjectMixin, UserPassesTestMixin
+):
+    """ Check wheter user can view the DatePoint.
+    Get project id that datepoint relates to and
+    checks wheter user belongs to this project id.
+    """
+
+    def test_func(self):
+        datepoint_pk = self.kwargs["pk"]
+        project_pk = DatePoint.objects.filter(id=datepoint_pk)[
+            0
+        ].task.project.id
+
+        user = self.request.user
+
+        return super().check_user(user, project_pk)

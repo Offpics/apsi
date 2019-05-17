@@ -17,9 +17,6 @@
 
 <script>
     var temp = JSON.parse("{{ datepoints|escapejs }}");
-    var project_pk = "{{ view.kwargs.pk }}";
-    console.log(project_pk);
-
 
     document.addEventListener('DOMContentLoaded', function () {
         var calendarEl = document.getElementById('calendar');
@@ -28,6 +25,7 @@
             plugins: ['interaction', 'dayGrid', 'bootstrap', 'timeGrid'],
             dateClick: function (info) {
                 var url = "{% url 'project-list' %}";
+                var project_pk = "{{ view.kwargs.pk }}"
                 window.location.href = url + project_pk + '/' + info.dateStr + '/';
             },
             events: temp,

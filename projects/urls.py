@@ -47,7 +47,7 @@ urlpatterns = [
         name="datepoint-detail",
     ),
     path(
-        "projects/<int:project_pk>/<slug:date>/",
+        "projects/<int:pk>/<slug:date>/",
         DatePointListView.as_view(),
         name="datepoint-list",
     ),
