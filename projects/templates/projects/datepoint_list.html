@@ -1,0 +1,14 @@
+{% extends "projects/base.html" %}
+{% block content %}
+
+
+{% for datepoint in datepoints %}
+<div class="row">
+    <p>Worker: {{ datepoint.worker }} </p>
+    <p>Task: {{ datepoint.task.title }} </p>
+    <p>Worked Date: {{ datepoint.worked_date }} </p>
+    <p>Worked Time: {{ datepoint.worked_time }} hours</p>
+</div>
+{% endfor %}
+
+{% endblock content %}

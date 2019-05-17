@@ -17,6 +17,17 @@ from .models import DatePoint, Project, Task
 from .utils import colors
 
 
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+#                            Project Views
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+
+
 class ProjectCreateView(
     LoginRequiredMixin,
     PermissionRequiredMixin,
@@ -170,6 +181,16 @@ class MyProjectsListView(
     permission_required = "projects.view_project"
 
 
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+#                            Task Views
+###############################################################################
+###############################################################################
+###############################################################################
+
+
 class TaskCreateView(
     LoginRequiredMixin,
     PermissionRequiredMixin,
@@ -228,6 +249,16 @@ class TaskUpdateView(
     permission_required = "projects.change_task"
 
 
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+#                            DatePoint Views
+###############################################################################
+###############################################################################
+###############################################################################
+
+
 class DatePointCreateView(
     PermissionRequiredMixin, SuccessMessageMixin, CreateView
 ):
@@ -257,8 +288,25 @@ class DatePointCreateView(
     permission_required = "projects.add_datepoint"
 
 
-class DatePointDetailView(DetailView, PermissionRequiredMixin):
+class DatePointDetailView(PermissionRequiredMixin, DetailView):
     model = DatePoint
+
+    permission_required = "projects.view_datepoint"
+
+
+class DatePointListView(PermissionRequiredMixin, ListView):
+    model = DatePoint
+
+    context_object_name = "datepoints"
+
+    def get_queryset(self):
+
+        # Get new queryset
+        queryset = DatePoint.objects.filter(
+            task__project_id=self.kwargs["project_pk"]
+        ).filter(worked_date=self.kwargs["date"])
+
+        return queryset
 
     permission_required = "projects.view_datepoint"
 

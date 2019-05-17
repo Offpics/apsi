@@ -2,6 +2,8 @@ from django.urls import path
 
 from .views import (
     DatePointCreateView,
+    DatePointDetailView,
+    DatePointListView,
     MyProjectsListView,
     ProjectCreateView,
     ProjectDetailView,
@@ -9,7 +11,6 @@ from .views import (
     TaskCreateView,
     TaskDetailView,
     TaskUpdateView,
-    DatePointDetailView,
     home,
 )
 
@@ -44,5 +45,10 @@ urlpatterns = [
         "datepoint/<int:pk>/",
         DatePointDetailView.as_view(),
         name="datepoint-detail",
+    ),
+    path(
+        "projects/<int:project_pk>/<slug:date>/",
+        DatePointListView.as_view(),
+        name="datepoint-list",
     ),
 ]

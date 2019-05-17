@@ -16,7 +16,9 @@
 
 
 <script>
-    var temp = JSON.parse("{{ datepoints|escapejs }}")
+    var temp = JSON.parse("{{ datepoints|escapejs }}");
+    var project_pk = "{{ view.kwargs.pk }}";
+    console.log(project_pk);
 
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -24,18 +26,9 @@
 
         var calendar = new FullCalendar.Calendar(calendarEl, {
             plugins: ['interaction', 'dayGrid', 'bootstrap', 'timeGrid'],
-            // header: {
-            //     left: 'prev,next today',
-            //     center: 'title',
-            //     right: 'dayGridMonth,timeGridWeek,timeGridDay'
-            // },
             dateClick: function (info) {
-                // window.location.href = "{% url 'project-list' %}";
-                alert('Clicked on: ' + info.dateStr);
-                alert('Coordinates: ' + info.jsEvent.pageX + ',' + info.jsEvent.pageY);
-                alert('Current view: ' + info.view.type);
-                // change the day's background color just for fun
-                info.dayEl.style.backgroundColor = 'red';
+                var url = "{% url 'project-list' %}";
+                window.location.href = url + project_pk + '/' + info.dateStr + '/';
             },
             events: temp,
         });
