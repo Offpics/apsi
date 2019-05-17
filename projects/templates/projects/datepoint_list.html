@@ -10,18 +10,20 @@
         <p>Worked Date: {{ datepoint.worked_date }} </p>
         <p>Worked Time: {{ datepoint.worked_time }} hours</p>
         <p>Approved: {{ datepoint.approved }}</p>
-
         {% if user.is_authenticated %}
         {% if perms.projects.change_datepoint %}
         {% if datepoint.approved is False %}
 
-        <a href="{% url 'datepoint-approve' pk=datepoint.pk %}" class="btn btn-warning">Approve</a>
+        <a href="{% url 'datepoint-approve2' pk=view.kwargs.pk date=view.kwargs.date datepoint_pk=datepoint.id %}"
+            class="btn btn-warning">Approve</a>
 
         {% else %}
-        <a href="{% url 'datepoint-approve' pk=datepoint.pk %}" class="btn btn-danger">Disapprove</a>
+        <a href="{% url 'datepoint-approve2' pk=view.kwargs.pk date=view.kwargs.date datepoint_pk=datepoint.id %}"
+            class="btn btn-danger">Disapprove</a>
         {% endif %}
         {% endif %}
         {% endif %}
+
     </div>
 
 </div>

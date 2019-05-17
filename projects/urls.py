@@ -12,6 +12,7 @@ from .views import (
     TaskDetailView,
     TaskUpdateView,
     ApproveDatePointView,
+    ApproveDatePointFromListView,
     home,
 )
 
@@ -51,6 +52,11 @@ urlpatterns = [
         "projects/<int:pk>/<slug:date>/",
         DatePointListView.as_view(),
         name="datepoint-list",
+    ),
+    path(
+        "projects/<int:pk>/<slug:date>/<int:datepoint_pk>/",
+        ApproveDatePointFromListView.as_view(),
+        name="datepoint-approve2",
     ),
     path(
         "datepoint/<int:pk>/approve/",

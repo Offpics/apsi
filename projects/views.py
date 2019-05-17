@@ -217,7 +217,14 @@ class TaskCreateView(
     def form_valid(self, form):
         # Get project by id.
         project = get_object_or_404(Project, id=self.kwargs["pk"])
-
+        datepoint_pk = kwargs["pk"]
+        datepoint = get_object_or_404(DatePoint, id=datepoint_pk)
+        if datepoint.approved is False:
+            datepoint.approved = True
+            datepoint.save()
+        else:
+            datepoint.approved = False
+            datepoint.save()
         # Append the form with returned project.
         form.instance.project = project
 
@@ -339,7 +346,35 @@ class ApproveDatePointView(
             datepoint.approved = False
             datepoint.save()
 
+        print(self.request.build_absolute_uri())
+
         return super().get_redirect_url(*args, **kwargs)
+
+    permission_required = "projects.change_datepoint"
+
+
+class ApproveDatePointFromListView(
+    PermissionRequiredMixin, UserBelongsToProjectMixin, RedirectView
+):
+    def get_redirect_url(self, *args, **kwargs):
+        datepoint_pk = kwargs["datepoint_pk"]
+        datepoint = get_object_or_404(DatePoint, id=datepoint_pk)
+        if datepoint.approved is False:
+            datepoint.approved = True
+            datepoint.save()
+        else:
+            datepoint.approved = False
+            datepoint.save()
+
+        print(self.kwargs["date"])
+        print(self.kwargs["pk"])
+
+        url = reverse(
+            "datepoint-list",
+            kwargs={"pk": self.kwargs["pk"], "date": self.kwargs["date"]},
+        )
+
+        return url
 
     permission_required = "projects.change_datepoint"
 
