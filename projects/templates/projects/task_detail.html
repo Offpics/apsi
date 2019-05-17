@@ -15,6 +15,17 @@ Datepoint list:
 <ul>
     <li>Worker: {{datepoint.worker}}, Worked_date: {{ datepoint.worked_date }}, Worked_time:
         {{ datepoint.worked_time }}, Description: {{ datepoint.description }}
+
+        {% if user.is_authenticated %}
+        {% if perms.projects.change_datepoint %}
+        {% if datepoint.approved is False %}
+        <a href="{% url 'datepoint-approve' datepoint_pk=datepoint.id %}" class="btn btn-warning">Approve</a>
+        {% else %}
+        <a href="{% url 'datepoint-approve' datepoint_pk=datepoint.id %}" class="btn btn-danger">Disapprove</a>
+        {% endif %}
+        {% endif %}
+        {% endif %}
+
     </li>
 </ul>
 {% endfor %}

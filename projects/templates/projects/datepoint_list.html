@@ -14,12 +14,10 @@
         {% if perms.projects.change_datepoint %}
         {% if datepoint.approved is False %}
 
-        <a href="{% url 'datepoint-approve2' project_pk=view.kwargs.project_pk date=view.kwargs.date datepoint_pk=datepoint.id %}"
-            class="btn btn-warning">Approve</a>
+        <a href="{% url 'datepoint-approve' datepoint_pk=datepoint.id %}" class="btn btn-warning">Approve</a>
 
         {% else %}
-        <a href="{% url 'datepoint-approve2' project_pk=view.kwargs.project_pk date=view.kwargs.date datepoint_pk=datepoint.id %}"
-            class="btn btn-danger">Disapprove</a>
+        <a href="{% url 'datepoint-approve' datepoint_pk=datepoint.id %}" class="btn btn-danger">Disapprove</a>
         {% endif %}
         {% endif %}
         {% endif %}
