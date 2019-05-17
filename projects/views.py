@@ -11,6 +11,7 @@ from django.urls import reverse
 from django.views.generic import CreateView, DetailView, ListView, UpdateView
 from django.views.generic.edit import FormMixin
 
+from .utils import colors
 from .forms import DatePointCreateForm, ProjectCreateForm, TestForm
 from .mixins import UserBelongsToProjectMixin, UserBelongsToTaskMixin
 from .models import DatePoint, Project, Task
@@ -53,38 +54,53 @@ class ProjectDetailView(
     form_class = TestForm
 
     def get_form_kwargs(self):
+
+        # Get kwargs.
         kwargs = super().get_form_kwargs()
 
-        # Add current user to the form.
+        # Add data that is used to render TestForm.
         kwargs["user"] = self.request.user
-
-        # Add curent project id to the form.
         kwargs["pk"] = self.kwargs["pk"]
 
         return kwargs
 
     def get_success_url(self):
+        """
+        Redirect to this url after posting valid form.
+        """
         return reverse("project-detail", kwargs={"pk": self.object.pk})
 
     def get_context_data(self, **kwargs):
+        """ Populate context with TestForm. """
+
+        # Get context.
         context = super().get_context_data(**kwargs)
 
         # Populate context with form.
         context["form"] = self.get_form()
 
-        # Populate context with info about tasks.
+        # Get DatePoints that belong to current project.
         queryset = DatePoint.objects.filter(task__project_id=self.kwargs["pk"])
 
+        # Set of unique tasks in queryset.
+        tasks = {datepoint.task.id for datepoint in queryset}
+
+        # Assign one color to one task and create dict of it.
+        tasks_color = dict(zip(tasks, colors))
+        print(tasks_color)
+
+        # Create list of dictionaries that is used to populate calendar events.
         datepoints = [
             {
                 "title": item.worker.username,
                 "start": item.worked_date.strftime("%Y-%m-%d"),
                 "url": reverse("datepoint-detail", kwargs={"pk": item.id}),
+                "color": tasks_color[item.task.id],
             }
             for item in queryset
         ]
 
-        print(datepoints)
+        # Create json and add it to context.
         context["datepoints"] = json.dumps(datepoints)
 
         return context
