@@ -61,7 +61,7 @@ class DatePoint(models.Model):
     date_created = models.DateTimeField(auto_now=True)
 
     # Wheter approved by manager.
-    approved = models.BooleanField()
+    approved = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Worker: {self.worker}, Task: {self.task}"

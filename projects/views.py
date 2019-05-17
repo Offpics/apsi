@@ -9,7 +9,13 @@ from django.contrib.auth.models import User
 from django.contrib.messages.views import SuccessMessageMixin
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
-from django.views.generic import CreateView, DetailView, ListView, UpdateView
+from django.views.generic import (
+    CreateView,
+    DetailView,
+    ListView,
+    UpdateView,
+    RedirectView,
+)
 from django.views.generic.edit import FormMixin
 
 from .forms import DatePointCreateForm, ProjectCreateForm, TestForm
@@ -67,14 +73,14 @@ class ProjectDetailView(
     """
 
     model = Project
-    form_class = TestForm
+    form_class = DatePointCreateForm
 
     def get_form_kwargs(self):
 
         # Get kwargs.
         kwargs = super().get_form_kwargs()
 
-        # Add data that is used to render TestForm.
+        # Add data that is used to render DatePointCreateForm.
         kwargs["user"] = self.request.user
         kwargs["project_pk"] = self.kwargs["pk"]
 
@@ -87,7 +93,7 @@ class ProjectDetailView(
         return reverse("project-detail", kwargs={"pk": self.object.pk})
 
     def get_context_data(self, **kwargs):
-        """ Populate context with TestForm. """
+        """ Populate context with DatePointCreateForm. """
 
         # Get context.
         context = super().get_context_data(**kwargs)
@@ -318,6 +324,24 @@ class DatePointListView(
         return queryset
 
     permission_required = "projects.view_datepoint"
+
+
+class ApproveDatePointView(
+    PermissionRequiredMixin, UserCanViewDatePointDetail, RedirectView
+):
+    def get_redirect_url(self, *args, **kwargs):
+        datepoint_pk = kwargs["pk"]
+        datepoint = get_object_or_404(DatePoint, id=datepoint_pk)
+        if datepoint.approved is False:
+            datepoint.approved = True
+            datepoint.save()
+        else:
+            datepoint.approved = False
+            datepoint.save()
+
+        return super().get_redirect_url(*args, **kwargs)
+
+    permission_required = "projects.change_datepoint"
 
 
 def home(request):

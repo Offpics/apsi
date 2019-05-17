@@ -4,10 +4,26 @@
 
 {% for datepoint in datepoints %}
 <div class="row">
-    <p>Worker: {{ datepoint.worker }} </p>
-    <p>Task: {{ datepoint.task.title }} </p>
-    <p>Worked Date: {{ datepoint.worked_date }} </p>
-    <p>Worked Time: {{ datepoint.worked_time }} hours</p>
+    <div>
+        <p>Worker: {{ datepoint.worker }} </p>
+        <p>Task: {{ datepoint.task.title }} </p>
+        <p>Worked Date: {{ datepoint.worked_date }} </p>
+        <p>Worked Time: {{ datepoint.worked_time }} hours</p>
+        <p>Approved: {{ datepoint.approved }}</p>
+
+        {% if user.is_authenticated %}
+        {% if perms.projects.change_datepoint %}
+        {% if datepoint.approved is False %}
+
+        <a href="{% url 'datepoint-approve' pk=datepoint.pk %}" class="btn btn-warning">Approve</a>
+
+        {% else %}
+        <a href="{% url 'datepoint-approve' pk=datepoint.pk %}" class="btn btn-danger">Disapprove</a>
+        {% endif %}
+        {% endif %}
+        {% endif %}
+    </div>
+
 </div>
 {% endfor %}
 
