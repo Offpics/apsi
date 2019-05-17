@@ -74,6 +74,7 @@ class ProjectDetailView(
 
     model = Project
     form_class = DatePointCreateForm
+    pk_url_kwarg = "project_pk"
 
     def get_form_kwargs(self):
 
@@ -82,7 +83,7 @@ class ProjectDetailView(
 
         # Add data that is used to render DatePointCreateForm.
         kwargs["user"] = self.request.user
-        kwargs["project_pk"] = self.kwargs["pk"]
+        kwargs["project_pk"] = self.kwargs["project_pk"]
 
         return kwargs
 
@@ -90,7 +91,7 @@ class ProjectDetailView(
         """
         Redirect to this url after posting valid form.
         """
-        return reverse("project-detail", kwargs={"pk": self.object.pk})
+        return reverse("project-detail", kwargs={"project_pk": self.object.pk})
 
     def get_context_data(self, **kwargs):
         """ Populate context with DatePointCreateForm. """
@@ -102,7 +103,9 @@ class ProjectDetailView(
         context["form"] = self.get_form()
 
         # Get DatePoints that belong to current project.
-        queryset = DatePoint.objects.filter(task__project_id=self.kwargs["pk"])
+        queryset = DatePoint.objects.filter(
+            task__project_id=self.kwargs["project_pk"]
+        )
 
         # Set of unique tasks in queryset.
         # TODO: Check wheter it is more optimal to use set comprehension here
@@ -117,7 +120,9 @@ class ProjectDetailView(
             {
                 "title": item.worker.username,
                 "start": item.worked_date.strftime("%Y-%m-%d"),
-                "url": reverse("datepoint-detail", kwargs={"pk": item.id}),
+                "url": reverse(
+                    "datepoint-detail", kwargs={"datepoint_pk": item.id}
+                ),
                 "color": tasks_color[item.task.id],
             }
             for item in queryset
@@ -151,13 +156,6 @@ class ProjectDetailView(
     permission_required = "projects.view_project"
 
 
-class ProjectListView(PermissionRequiredMixin, ListView):
-    model = Project
-    context_object_name = "projects"
-
-    permission_required = "projects.view_project"
-
-
 class ProjectUpdateView(
     PermissionRequiredMixin,
     UserBelongsToProjectMixin,
@@ -165,6 +163,7 @@ class ProjectUpdateView(
     UpdateView,
 ):
     model = Project
+    pk_url_kwarg = "project_pk"
 
     form_class = ProjectCreateForm
     template_name = "projects/project_form.html"
@@ -216,15 +215,8 @@ class TaskCreateView(
     # and saving it.
     def form_valid(self, form):
         # Get project by id.
-        project = get_object_or_404(Project, id=self.kwargs["pk"])
-        datepoint_pk = kwargs["pk"]
-        datepoint = get_object_or_404(DatePoint, id=datepoint_pk)
-        if datepoint.approved is False:
-            datepoint.approved = True
-            datepoint.save()
-        else:
-            datepoint.approved = False
-            datepoint.save()
+        project = get_object_or_404(Project, id=self.kwargs["project_pk"])
+
         # Append the form with returned project.
         form.instance.project = project
 
@@ -240,13 +232,16 @@ class TaskDetailView(
     PermissionRequiredMixin, UserBelongsToTaskMixin, DetailView
 ):
     model = Task
+    pk_url_kwarg = "task_pk"
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context.
         context = super().get_context_data(**kwargs)
 
         # Add in a QuerySet of all the datepoints.
-        datepoint_list = DatePoint.objects.filter(task__id=self.kwargs["pk"])
+        datepoint_list = DatePoint.objects.filter(
+            task__id=self.kwargs["task_pk"]
+        )
         context["datepoint_list"] = datepoint_list
         return context
 
@@ -261,6 +256,7 @@ class TaskUpdateView(
 ):
     model = Task
     fields = ["title"]
+    pk_url_kwarg = "task_pk"
 
     success_message = "Task succesfully updated!"
 
@@ -282,6 +278,7 @@ class DatePointCreateView(
 ):
     form_class = DatePointCreateForm
     template_name = "projects/datepoint_form.html"
+    pk_url_kwarg = "datepoint_pk"
 
     def get_form_kwargs(self):
         kwargs = super(DatePointCreateView, self).get_form_kwargs()
@@ -290,7 +287,7 @@ class DatePointCreateView(
         kwargs["user"] = self.request.user
 
         # Add curent project id to the form.
-        kwargs["project_pk"] = self.kwargs["pk"]
+        kwargs["project_pk"] = self.kwargs["datepoint_pk"]
 
         return kwargs
 
@@ -310,6 +307,7 @@ class DatePointDetailView(
     PermissionRequiredMixin, UserCanViewDatePointDetail, DetailView
 ):
     model = DatePoint
+    pk_url_kwarg = "datepoint_pk"
 
     permission_required = "projects.view_datepoint"
 
@@ -325,7 +323,7 @@ class DatePointListView(
 
         # Get new queryset
         queryset = DatePoint.objects.filter(
-            task__project_id=self.kwargs["pk"]
+            task__project_id=self.kwargs["project_pk"]
         ).filter(worked_date=self.kwargs["date"])
 
         return queryset
@@ -337,26 +335,6 @@ class ApproveDatePointView(
     PermissionRequiredMixin, UserCanViewDatePointDetail, RedirectView
 ):
     def get_redirect_url(self, *args, **kwargs):
-        datepoint_pk = kwargs["pk"]
-        datepoint = get_object_or_404(DatePoint, id=datepoint_pk)
-        if datepoint.approved is False:
-            datepoint.approved = True
-            datepoint.save()
-        else:
-            datepoint.approved = False
-            datepoint.save()
-
-        print(self.request.build_absolute_uri())
-
-        return super().get_redirect_url(*args, **kwargs)
-
-    permission_required = "projects.change_datepoint"
-
-
-class ApproveDatePointFromListView(
-    PermissionRequiredMixin, UserBelongsToProjectMixin, RedirectView
-):
-    def get_redirect_url(self, *args, **kwargs):
         datepoint_pk = kwargs["datepoint_pk"]
         datepoint = get_object_or_404(DatePoint, id=datepoint_pk)
         if datepoint.approved is False:
@@ -366,13 +344,8 @@ class ApproveDatePointFromListView(
             datepoint.approved = False
             datepoint.save()
 
-        print(self.kwargs["date"])
-        print(self.kwargs["pk"])
-
-        url = reverse(
-            "datepoint-list",
-            kwargs={"pk": self.kwargs["pk"], "date": self.kwargs["date"]},
-        )
+        print(self.request.build_absolute_uri())
+        url = self.request.META["HTTP_REFERER"]
 
         return url
 

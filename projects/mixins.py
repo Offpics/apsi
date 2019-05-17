@@ -8,7 +8,7 @@ class UserBelongsToProjectMixin(UserPassesTestMixin):
 
     def test_func(self):
         user = self.request.user
-        project_pk = self.kwargs["pk"]
+        project_pk = self.kwargs["project_pk"]
         return self.check_user(user, project_pk)
 
     def check_user(self, user, project_pk):
@@ -30,7 +30,7 @@ class UserBelongsToTaskMixin(UserPassesTestMixin):
 
     def test_func(self):
         user = self.request.user
-        task_pk = self.kwargs["pk"]
+        task_pk = self.kwargs["task_pk"]
         if user.groups.count() > 0:
             if user.groups.all()[0].name == "Worker":
                 queryset = Task.objects.filter(
@@ -57,7 +57,7 @@ class UserCanViewDatePointDetail(
     """
 
     def test_func(self):
-        datepoint_pk = self.kwargs["pk"]
+        datepoint_pk = self.kwargs["datepoint_pk"]
         project_pk = DatePoint.objects.filter(id=datepoint_pk)[
             0
         ].task.project.id

@@ -25,7 +25,7 @@
             plugins: ['interaction', 'dayGrid', 'bootstrap', 'timeGrid'],
             dateClick: function (info) {
                 var url = "{% url 'project-list' %}";
-                var project_pk = "{{ view.kwargs.pk }}"
+                var project_pk = "{{ view.kwargs.project_pk }}"
                 window.location.href = url + project_pk + '/' + info.dateStr + '/';
             },
             events: temp,
