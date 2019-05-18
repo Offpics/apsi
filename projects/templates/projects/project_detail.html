@@ -24,9 +24,8 @@
         var calendar = new FullCalendar.Calendar(calendarEl, {
             plugins: ['interaction', 'dayGrid', 'bootstrap', 'timeGrid'],
             dateClick: function (info) {
-                var url = "{% url 'project-list' %}";
                 var project_pk = "{{ view.kwargs.project_pk }}"
-                window.location.href = url + project_pk + '/' + info.dateStr + '/';
+                window.location.href = '/datepoints/' + project_pk + '/' + info.dateStr + '/';
             },
             events: temp,
         });
@@ -43,6 +42,11 @@
 
 <div id='calendar'></div>
 
+{% if view.kwargs.approved %}
+<a href="{% url 'project-detail' view.kwargs.project_pk %}">Normal View</a>
+{% else %}
+<a href="{% url 'project-detail-approved' view.kwargs.project_pk 'approved' %}">Approved View</a>
+{% endif %}
 
 <p>Title: {{ object.title }} </p>
 

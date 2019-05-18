@@ -4,6 +4,7 @@ from django.contrib.auth.mixins import (
     LoginRequiredMixin,
     PermissionRequiredMixin,
 )
+from django.http import Http404
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.messages.views import SuccessMessageMixin
@@ -107,29 +108,64 @@ class ProjectDetailView(
             task__project_id=self.kwargs["project_pk"]
         )
 
-        # Set of unique tasks in queryset.
-        # TODO: Check wheter it is more optimal to use set comprehension here
-        # or a distinc query.
-        tasks = {datepoint.task.id for datepoint in queryset}
+        # Decide which wheter DetailView was called with "approved" kwarg.
+        try:
+            approved = self.kwargs["approved"]
+        except KeyError:
+            # If approved kwargs is not present display fullcalendar with
+            # different colors for each task.
+            approved = False
+        else:
+            # If approved kwargs is present display fullcalend with
+            # colors corresponding to DatePoint.approved field.
+            if approved == "approved":
+                approved = True
+            else:
+                print("xd")
+                raise Http404("Page not found!")
 
-        # Assign one color to one task and create dict of it.
-        tasks_color = dict(zip(tasks, colors))
+        if not approved:
+            # Set of unique tasks in queryset.
+            # TODO: Check wheter it is more optimal to use set comprehension here
+            # or a distinc query.
+            tasks = {datepoint.task.id for datepoint in queryset}
 
-        # Create list of dictionaries that is used to populate calendar events.
-        datepoints = [
-            {
-                "title": item.worker.username,
-                "start": item.worked_date.strftime("%Y-%m-%d"),
-                "url": reverse(
-                    "datepoint-detail", kwargs={"datepoint_pk": item.id}
-                ),
-                "color": tasks_color[item.task.id],
-            }
-            for item in queryset
-        ]
+            # Assign one color to one task and create dict of it.
+            tasks_color = dict(zip(tasks, colors))
 
-        # Create json and add it to context.
-        context["datepoints"] = json.dumps(datepoints)
+            # Create list of dictionaries that is used to populate calendar events.
+            datepoints = [
+                {
+                    "title": item.worker.username,
+                    "start": item.worked_date.strftime("%Y-%m-%d"),
+                    "url": reverse(
+                        "datepoint-detail", kwargs={"datepoint_pk": item.id}
+                    ),
+                    "color": tasks_color[item.task.id],
+                }
+                for item in queryset
+            ]
+
+            # Create json and add it to context.
+            context["datepoints"] = json.dumps(datepoints)
+        else:
+            tasks = {datepoint.task.id for datepoint in queryset}
+
+            # Create list of dictionaries that is used to populate calendar events.
+            datepoints = [
+                {
+                    "title": item.worker.username,
+                    "start": item.worked_date.strftime("%Y-%m-%d"),
+                    "url": reverse(
+                        "datepoint-detail", kwargs={"datepoint_pk": item.id}
+                    ),
+                    "color": "green" if item.approved else "red",
+                }
+                for item in queryset
+            ]
+
+            # Create json and add it to context.
+            context["datepoints"] = json.dumps(datepoints)
 
         return context
 

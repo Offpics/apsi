@@ -26,6 +26,12 @@ urlpatterns = [
         ProjectDetailView.as_view(),
         name="project-detail",
     ),
+    # Project DetailView with approved colors for fullcalendar.
+    path(
+        "projects/<int:project_pk>/<str:approved>/",
+        ProjectDetailView.as_view(),
+        name="project-detail-approved",
+    ),
     # Project CreateView.
     path("projects/new/", ProjectCreateView.as_view(), name="project-create"),
     # Project UpdateView.
@@ -62,15 +68,11 @@ urlpatterns = [
     ),
     # List of DatePoint within project in given day.
     path(
-        "projects/<int:project_pk>/<slug:date>/",
+        "datepoints/<int:project_pk>/<slug:date>/",
         DatePointListView.as_view(),
         name="datepoint-list",
     ),
-    path(
-        "projects/<int:project_pk>/<slug:date>/<int:datepoint_pk>/approve/",
-        ApproveDatePointView.as_view(),
-        name="datepoint-approve2",
-    ),
+    # Approve DatePoint.
     path(
         "datepoint/<int:datepoint_pk>/approve/",
         ApproveDatePointView.as_view(),
