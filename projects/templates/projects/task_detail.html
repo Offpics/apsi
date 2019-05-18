@@ -1,4 +1,5 @@
 {% extends "projects/base.html" %}
+{% load static %}
 {% block content %}
 <p>Title: {{ object.title }} </p>
 
@@ -11,24 +12,59 @@
 {% if datepoint_list %}
 Datepoint list:
 {% endif %}
-{% for datepoint in datepoint_list %}
-<ul>
-    <li>Worker: {{datepoint.worker}}, Worked_date: {{ datepoint.worked_date }}, Worked_time:
-        {{ datepoint.worked_time }}, Description: {{ datepoint.description }}
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">Worker</th>
+            <th scope="col">Worked date</th>
+            <th scope="col">Worked time</th>
+            <th scope="col">Description</th>
+            {% if perms.projects.change_datepoint %}
+            <th scope="col">Approved</th>
+            <th scope="col">Action</th>
+            {% endif %}
+        </tr>
+    </thead>
+    {% for datepoint in datepoint_list %}
+    <tbody>
+        <tr>
+            <td>{{ datepoint.worker }}</td>
+            <td>{{ datepoint.worked_date }}</td>
+            <td>{{ datepoint.worked_time }}</td>
+            <td>
+                {% if datepoint.description %}
+                {{ datepoint.description }}
+                {% else %}
+                ---
+                {% endif %}
+            </td>
+            {% if perms.projects.change_datepoint %}
+            {% if datepoint.approved is False %}
 
-        {% if user.is_authenticated %}
-        {% if perms.projects.change_datepoint %}
-        {% if datepoint.approved is False %}
-        <a href="{% url 'datepoint-approve' datepoint_pk=datepoint.id %}" class="btn btn-success">Approve</a>
-        {% else %}
-        <a href="{% url 'datepoint-approve' datepoint_pk=datepoint.id %}" class="btn btn-danger">Disapprove</a>
-        {% endif %}
-        {% endif %}
-        {% endif %}
+            <td>
+                <img src="{% static 'admin/img/icon-no.svg' %}">
+            </td>
+            <td>
+                <a href="{% url 'datepoint-approve' datepoint_pk=datepoint.id %}"
+                    class="btn btn-outline-success">Approve</a>
+            </td>
 
-    </li>
-</ul>
-{% endfor %}
+            {% else %}
+            <td>
+                <img src="{% static 'admin/img/icon-yes.svg' %}">
+            </td>
+            <td>
+                <a href="{% url 'datepoint-approve' datepoint_pk=datepoint.id %}"
+                    class="btn btn-outline-danger">Disapprove</a>
+
+            </td>
+            {% endif %}
+            {% endif %}
+        </tr>
+    </tbody>
+    {% endfor %}
+</table>
+
 
 
 {% endblock content %}

@@ -19,7 +19,7 @@ from django.views.generic import (
 )
 from django.views.generic.edit import FormMixin
 
-from .forms import DatePointCreateForm, ProjectCreateForm, TestForm
+from .forms import DatePointCreateForm, ProjectCreateForm
 from .mixins import (
     UserBelongsToProjectMixin,
     UserBelongsToTaskMixin,

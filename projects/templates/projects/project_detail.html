@@ -38,63 +38,74 @@
 
 
 
-{% block content %}
+{% block content2 %}
 
-<div id='calendar'></div>
+<div class="row">
+    <div class="col-8">
+        <div id='calendar'></div>
 
-{% if view.kwargs.approved %}
-<a href="{% url 'project-detail' view.kwargs.project_pk %}">Normal View</a>
-{% else %}
-<a href="{% url 'project-detail-approved' view.kwargs.project_pk 'approved' %}">Approved View</a>
-{% endif %}
-
-<p>Title: {{ object.title }} </p>
-
-<p>Description: {{ object.description }}</p>
-
-<p>Manager: {{ object.manager }}</p>
-
-<p>Workers:
-    {% for worker in object.worker.all %}
-    <ul>
-        <li>{{ worker }}</li>
-    </ul>
-    {%endfor %}
-</p>
-
-<p>Tasks:
-
-    {% for task in object.task_set.all %}
-    <a href="{% url 'task-detail' task.id %}">{{ task.title }}</a>
-    {% endfor %}
-</p>
-
-{% if perms.projects.add_task %}
-<p><a href="{% url 'task-create' object.id %}">Add new Task to the project</a></p>
-{% endif %}
-
-{% if perms.projects.change_project %}
-<p><a href="{% url 'project-update' object.id %}">Update Current Project</a></p>
-{% endif %}
-
-{% if perms.projects.add_datepoint %}
-<p><a href="{% url 'datepoint-create' object.id %}">Add Datepoint</a></p>
-{% endif %}
-
-
-
-{% if perms.projects.add_datepoint %}
-<div class="content-section">
-    <form method="POST">
-        {% csrf_token %}
-        {{ form|crispy }}
-        <div class="form-group">
-            <button class="btn btn-outline-info" type="submit">Post</button>
+        {% if perms.projects.add_datepoint %}
+        <div class="content-section">
+            <form method="POST">
+                {% csrf_token %}
+                {{ form|crispy }}
+                <div class="form-group">
+                    <button class="btn btn-outline-info" type="submit">Post</button>
+                </div>
+            </form>
         </div>
-    </form>
+        {% endif %}
+
+
+        {% if view.kwargs.approved %}
+        <a href="{% url 'project-detail' view.kwargs.project_pk %}">Normal View</a>
+        {% else %}
+        <a href="{% url 'project-detail-approved' view.kwargs.project_pk 'approved' %}">Approved View</a>
+        {% endif %}
+
+    </div>
+
+    <div class="col-4">
+        <div class="card bg-light mb-3">
+            <!-- <div class="card-header">{{ object.title }}</div> -->
+            <div class="card-body">
+                <h5 class="card-title">{{ object.title }}</h5>
+                <p class="card-text">Description: {{ object.description }}</p>
+                <ul class="list-group list-group-flush">
+                    {% for task in object.task_set.all %}
+                    <li class="list-group-item card-text">
+                        <a href="{% url 'task-detail' task.id %}">{{ task.title }}</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <p class="card-text">Manager: {{ object.manager }}</p>
+                <p class="card-text">Workers:
+                    {% for worker in object.worker.all %}
+                    {{ worker }}
+                    {% endfor %}
+                </p>
+            </div>
+            <div class="card-footer">
+                <div class="btn-group" role="group">
+                    {% if perms.projects.add_task %}
+                    <a href="{% url 'task-create' object.id %}" class="btn btn-outline-info">New Task</a>
+                    {% endif %}
+
+                    {% if perms.projects.change_project %}
+                    <a href="{% url 'project-update' object.id %}" class="btn btn-outline-info">Update Project</a>
+                    {% endif %}
+                </div>
+
+            </div>
+        </div>
+    </div>
+
 </div>
-{% endif %}
+</div>
 
 
 
-{% endblock content %}
+
+
+
+{% endblock content2 %}

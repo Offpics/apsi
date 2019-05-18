@@ -123,5 +123,5 @@ STATIC_URL = "/static/"
 
 CRISPY_TEMPLATE_PACK = "bootstrap4"
 
-LOGIN_REDIRECT_URL = "project-home"
+LOGIN_REDIRECT_URL = "project-list"
 LOGIN_URL = "login"
