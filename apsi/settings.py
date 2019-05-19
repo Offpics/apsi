@@ -25,7 +25,7 @@ SECRET_KEY = "hvow!r-ye3839e78n85zelgbral&ly_rrcvyr74-l5l)gz&18)"
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["www.apsi.kszymczyk.me", "apsi.kszymczyk.me", "localhost"]
+ALLOWED_HOSTS = ["www.apsi.kszymczyk.me", "apsi.kszymczyk.me", "localhost", "127.0.0.1"]
 
 
 # Application definition
