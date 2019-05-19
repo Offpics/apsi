@@ -1,6 +1,6 @@
 # APSI
 
-Link - http://68.183.65.122:55555/
+Link - https://apsi.kszymczyk.me/
 
 Aktualne konta do logowania w bazie danych (plik db.sqlite3):
 
