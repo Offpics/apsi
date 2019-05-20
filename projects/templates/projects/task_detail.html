@@ -19,8 +19,8 @@ Datepoint list:
             <th scope="col">Worked date</th>
             <th scope="col">Worked time</th>
             <th scope="col">Description</th>
-            {% if perms.projects.change_datepoint %}
             <th scope="col">Approved</th>
+            {% if perms.projects.change_datepoint %}
             <th scope="col">Action</th>
             {% endif %}
         </tr>
@@ -38,27 +38,29 @@ Datepoint list:
                 ---
                 {% endif %}
             </td>
-            {% if perms.projects.change_datepoint %}
             {% if datepoint.approved is False %}
 
             <td>
                 <img src="{% static 'admin/img/icon-no.svg' %}">
             </td>
-            <td>
-                <a href="{% url 'datepoint-approve' datepoint_pk=datepoint.id %}"
-                    class="btn btn-outline-success">Approve</a>
-            </td>
-
             {% else %}
             <td>
                 <img src="{% static 'admin/img/icon-yes.svg' %}">
             </td>
+            {% endif %}
+            {% if perms.projects.change_datepoint %}
+            {% if datepoint.approved is False %}
+            <td>
+                <a href="{% url 'datepoint-approve' datepoint_pk=datepoint.id %}"
+                    class="btn btn-outline-success">Approve</a>
+            </td>
+            {% else %}
+
             <td>
                 <a href="{% url 'datepoint-approve' datepoint_pk=datepoint.id %}"
                     class="btn btn-outline-danger">Disapprove</a>
-
+                {% endif %}
             </td>
-            {% endif %}
             {% endif %}
         </tr>
     </tbody>
