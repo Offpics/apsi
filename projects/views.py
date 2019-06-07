@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import (
     LoginRequiredMixin,
     PermissionRequiredMixin,
 )
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.messages.views import SuccessMessageMixin
@@ -16,6 +16,7 @@ from django.views.generic import (
     ListView,
     UpdateView,
     RedirectView,
+    View,
 )
 from django.views.generic.edit import FormMixin
 
@@ -279,6 +280,11 @@ class TaskDetailView(
             task__id=self.kwargs["task_pk"]
         )
         context["datepoint_list"] = datepoint_list
+
+        datepoints_pks = [item.pk for item in datepoint_list]
+
+        context["datepoints_pks"] = datepoints_pks
+
         return context
 
     permission_required = "projects.view_task"
@@ -364,6 +370,21 @@ class DatePointListView(
 
         return queryset
 
+    def get_context_data(self, **kwargs):
+
+        # Get context.
+        context = super().get_context_data(**kwargs)
+
+        queryset = DatePoint.objects.filter(
+            task__project_id=self.kwargs["project_pk"]
+        ).filter(worked_date=self.kwargs["date"])
+
+        datepoints_pks = [item.pk for item in queryset]
+
+        context["datepoints_pks"] = json.dumps(datepoints_pks)
+
+        return context
+
     permission_required = "projects.view_datepoint"
 
 
@@ -373,12 +394,8 @@ class ApproveDatePointView(
     def get_redirect_url(self, *args, **kwargs):
         datepoint_pk = kwargs["datepoint_pk"]
         datepoint = get_object_or_404(DatePoint, id=datepoint_pk)
-        if datepoint.approved is False:
-            datepoint.approved = True
-            datepoint.save()
-        else:
-            datepoint.approved = False
-            datepoint.save()
+        datepoint.approved = not datepoint.approved
+        datepoint.save()
 
         print(self.request.build_absolute_uri())
         url = self.request.META["HTTP_REFERER"]
@@ -386,6 +403,15 @@ class ApproveDatePointView(
         return url
 
     permission_required = "projects.change_datepoint"
+
+
+class ManagerApproveDatePointView(View):
+    def get(self, *args, **kwargs):
+        datepoint_pk = kwargs["datepoint_pk"]
+        datepoint = get_object_or_404(DatePoint, id=datepoint_pk)
+        datepoint.approved = not datepoint.approved
+        datepoint.save()
+        return HttpResponse(datepoint.approved)
 
 
 def home(request):

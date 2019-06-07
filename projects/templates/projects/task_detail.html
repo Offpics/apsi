@@ -9,7 +9,64 @@
 <p><a href="{% url 'task-update' object.id %}">Update Current Task</a></p>
 {% endif %}
 
-{% if datepoint_list %}
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">Worker</th>
+            <th scope="col">Worked date</th>
+            <th scope="col">Worked time</th>
+            <th scope="col">Description</th>
+            <th scope="col">Approved</th>
+            {% if perms.projects.change_datepoint %}
+            <th scope="col">Action</th>
+            {% endif %}
+        </tr>
+    </thead>
+    {% for datepoint in datepoint_list %}
+    <tbody>
+        <tr>
+            <td>{{ datepoint.worker }}</td>
+            <td>{{ datepoint.worked_date }}</td>
+            <td>{{ datepoint.worked_time }}</td>
+            <td>
+                {% if datepoint.description %}
+                {{ datepoint.description }}
+                {% else %}
+                ---
+                {% endif %}
+            </td>
+            {% if datepoint.approved is False %}
+
+            <td>
+                <img src="{% static 'admin/img/icon-no.svg' %}" id="approved{{ datepoint.id }}">
+            </td>
+            {% else %}
+            <td>
+                <img src="{% static 'admin/img/icon-yes.svg' %}" id="approved{{ datepoint.id }}">
+            </td>
+            {% endif %}
+            {% if perms.projects.change_datepoint %}
+            {% if datepoint.approved is False %}
+            <td>
+                <button class="btn btn-outline-success" id="btn{{ datepoint.id }}">Approve</button>
+            </td>
+            {% else %}
+
+            <td>
+                <button class="btn btn-outline-danger" id="btn{{ datepoint.id }}">Disapprove</button>
+
+            </td>
+
+            {% endif %}
+            {% endif %}
+        </tr>
+    </tbody>
+    {% endfor %}
+</table>
+
+
+
+<!-- {% if datepoint_list %}
 Datepoint list:
 {% endif %}
 <table class="table">
@@ -65,8 +122,29 @@ Datepoint list:
         </tr>
     </tbody>
     {% endfor %}
-</table>
+</table> -->
 
+<script>
+    const datepoints_pks = JSON.parse("{{ datepoints_pks | escapejs }}");
 
+    datepoints_pks.forEach(element => {
+
+        document.querySelector("#btn" + element).addEventListener('click', function () {
+            $.get("/datepoint/" + element + "/approve/", function (data) {
+                if (data == "False") {
+                    document.querySelector("#btn" + element).classList.replace("btn-outline-danger", "btn-outline-success");
+                    document.querySelector("#btn" + element).textContent = "Approve";
+                    document.querySelector("#approved" + element).src = "http://127.0.0.1:8000/static/admin/img/icon-no.svg";
+
+                } else {
+                    document.querySelector("#btn" + element).classList.replace("btn-outline-success", "btn-outline-danger");
+                    document.querySelector("#btn" + element).textContent = "Disapprove";
+                    document.querySelector("#approved" + element).src = "http://127.0.0.1:8000/static/admin/img/icon-yes.svg";
+                }
+            });
+        });
+    });
+
+</script>
 
 {% endblock content %}

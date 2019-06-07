@@ -4,7 +4,7 @@
 <p>Task: {{ object.task.title }} </p>
 <p>Worked Date: {{ object.worked_date }} </p>
 <p>Worked Time: {{ object.worked_time }} hours</p>
-<p>Approved: {{ object.approved }}</p>
+<p id="approved">Approved: {{ object.approved }}</p>
 
 
 
@@ -13,13 +13,30 @@
 {% if perms.projects.change_datepoint %}
 {% if object.approved is False %}
 
-<a href="{% url 'datepoint-approve' datepoint_pk=view.kwargs.datepoint_pk %}" class="btn btn-success">Approve</a>
+<a class="btn btn-success" id="btntest">Approve</a>
 
 {% else %}
-<a href="{% url 'datepoint-approve' datepoint_pk=view.kwargs.datepoint_pk %}" class="btn btn-danger">Disapprove</a>
+<a class="btn btn-danger" id="btntest">Disapprove</a>
 {% endif %}
 {% endif %}
 {% endif %}
 
+<script>
+    const tmp_url = "{% url 'datepoint-approve' datepoint_pk=view.kwargs.datepoint_pk %}";
+    const tmp_btn = document.querySelector('#btntest');
+    const p_approved = document.querySelector('#approved');
+    tmp_btn.addEventListener('click', function () {
+        $.get(tmp_url, function (data) {
+            document.querySelector("#approved").textContent = "Approved: " + data;
+            if (data == "False") {
+                tmp_btn.classList.replace("btn-danger", "btn-success");
+                tmp_btn.textContent = "Approve";
+            } else {
+                tmp_btn.classList.replace("btn-success", "btn-danger");
+                tmp_btn.textContent = "Disapprove";
+            }
+        });
+    });
+</script>
 
 {% endblock content %}

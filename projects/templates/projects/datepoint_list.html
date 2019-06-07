@@ -31,24 +31,22 @@
             {% if datepoint.approved is False %}
 
             <td>
-                <img src="{% static 'admin/img/icon-no.svg' %}">
+                <img src="{% static 'admin/img/icon-no.svg' %}" id="approved{{ datepoint.id }}">
             </td>
             {% else %}
             <td>
-                <img src="{% static 'admin/img/icon-yes.svg' %}">
+                <img src="{% static 'admin/img/icon-yes.svg' %}" id="approved{{ datepoint.id }}">
             </td>
             {% endif %}
             {% if perms.projects.change_datepoint %}
             {% if datepoint.approved is False %}
             <td>
-                <a href="{% url 'datepoint-approve' datepoint_pk=datepoint.id %}"
-                    class="btn btn-outline-success">Approve</a>
+                <button class="btn btn-outline-success" id="btn{{ datepoint.id }}">Approve</button>
             </td>
             {% else %}
 
             <td>
-                <a href="{% url 'datepoint-approve' datepoint_pk=datepoint.id %}"
-                    class="btn btn-outline-danger">Disapprove</a>
+                <button class="btn btn-outline-danger" id="btn{{ datepoint.id }}">Disapprove</button>
 
             </td>
 
@@ -60,6 +58,26 @@
 </table>
 
 
+<script>
+    const datepoints_pks = JSON.parse("{{ datepoints_pks | escapejs }}");
 
+    datepoints_pks.forEach(element => {
 
+        document.querySelector("#btn" + element).addEventListener('click', function () {
+            $.get("/datepoint/" + element + "/approve/", function (data) {
+                if (data == "False") {
+                    document.querySelector("#btn" + element).classList.replace("btn-outline-danger", "btn-outline-success");
+                    document.querySelector("#btn" + element).textContent = "Approve";
+                    document.querySelector("#approved" + element).src = "http://127.0.0.1:8000/static/admin/img/icon-no.svg";
+
+                } else {
+                    document.querySelector("#btn" + element).classList.replace("btn-outline-success", "btn-outline-danger");
+                    document.querySelector("#btn" + element).textContent = "Disapprove";
+                    document.querySelector("#approved" + element).src = "http://127.0.0.1:8000/static/admin/img/icon-yes.svg";
+                }
+            });
+        });
+    });
+
+</script>
 {% endblock content %}
