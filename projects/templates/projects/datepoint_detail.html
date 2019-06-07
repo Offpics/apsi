@@ -4,14 +4,14 @@
 <p>Task: {{ object.task.title }} </p>
 <p>Worked Date: {{ object.worked_date }} </p>
 <p>Worked Time: {{ object.worked_time }} hours</p>
-<p id="approved">Approved: {{ object.approved }}</p>
+<p id="approved_manager">Approved: {{ object.approved_manager }}</p>
 
 
 
 
 {% if user.is_authenticated %}
 {% if perms.projects.change_datepoint %}
-{% if object.approved is False %}
+{% if object.approved_manager is False %}
 
 <a class="btn btn-success" id="btntest">Approve</a>
 
@@ -24,10 +24,10 @@
 <script>
     const tmp_url = "{% url 'datepoint-approve' datepoint_pk=view.kwargs.datepoint_pk %}";
     const tmp_btn = document.querySelector('#btntest');
-    const p_approved = document.querySelector('#approved');
+    const p_approved = document.querySelector('#approved_manager');
     tmp_btn.addEventListener('click', function () {
         $.get(tmp_url, function (data) {
-            document.querySelector("#approved").textContent = "Approved: " + data;
+            document.querySelector("#approved_manager").textContent = "Approved: " + data;
             if (data == "False") {
                 tmp_btn.classList.replace("btn-danger", "btn-success");
                 tmp_btn.textContent = "Approve";

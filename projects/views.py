@@ -161,7 +161,7 @@ class ProjectDetailView(
                     "url": reverse(
                         "datepoint-detail", kwargs={"datepoint_pk": item.id}
                     ),
-                    "color": "green" if item.approved else "red",
+                    "color": "green" if item.approved_manager else "red",
                 }
                 for item in queryset
             ]
@@ -399,7 +399,7 @@ class ApproveDatePointView(
     def get_redirect_url(self, *args, **kwargs):
         datepoint_pk = kwargs["datepoint_pk"]
         datepoint = get_object_or_404(DatePoint, id=datepoint_pk)
-        datepoint.approved = not datepoint.approved
+        datepoint.approved_manager = not datepoint.approved_manager
         datepoint.save()
 
         print(self.request.build_absolute_uri())
@@ -419,9 +419,9 @@ class ManagerApproveDatePointView(
     def get(self, *args, **kwargs):
         datepoint_pk = kwargs["datepoint_pk"]
         datepoint = get_object_or_404(DatePoint, id=datepoint_pk)
-        datepoint.approved = not datepoint.approved
+        datepoint.approved_manager = not datepoint.approved_manager
         datepoint.save()
-        return HttpResponse(datepoint.approved)
+        return HttpResponse(datepoint.approved_manager)
 
 
 def home(request):
