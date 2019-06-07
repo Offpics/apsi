@@ -425,15 +425,12 @@ class ManagerApproveDatePointView(
         datepoint = get_object_or_404(DatePoint, id=datepoint_pk)
 
         if user.groups.count() > 0:
-            print("PASSED 1")
             print(user.groups.all()[0])
             if user.groups.all()[0].name == "Manager":
-                print("PASSED 2")
                 datepoint.approved_manager = not datepoint.approved_manager
                 datepoint.save()
                 return HttpResponse(datepoint.approved_manager)
             elif user.groups.all()[0].name == "Client":
-                print("PAASED 3")
                 datepoint.approved_client = not datepoint.approved_client
                 datepoint.save()
                 return HttpResponse(datepoint.approved_client)
