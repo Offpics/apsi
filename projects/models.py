@@ -51,6 +51,9 @@ class DatePoint(models.Model):
     # Description of the working.
     description = models.CharField(max_length=100, blank=True)
 
+    # URL to something.
+    url = models.URLField(blank=True)
+
     # Worked time.
     worked_time = models.PositiveIntegerField()
 

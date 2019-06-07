@@ -25,6 +25,7 @@ class DatePointAdmin(admin.ModelAdmin):
         "worked_time",
         "date_created",
         "description",
+        "url",
     )
 
     readonly_fields = (
@@ -35,4 +36,5 @@ class DatePointAdmin(admin.ModelAdmin):
         "worked_time",
         "date_created",
         "description",
+        "url",
     )

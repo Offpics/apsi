@@ -26,7 +26,7 @@ class DatePointCreateForm(forms.ModelForm):
 
     class Meta:
         model = DatePoint
-        fields = ["task", "worked_date", "worked_time", "description"]
+        fields = ["task", "worked_date", "worked_time", "description", "url"]
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user")
