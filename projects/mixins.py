@@ -75,6 +75,10 @@ class ManagerCanEditDatepoint(UserPassesTestMixin):
                 queryset = Project.objects.filter(id=project_pk, manager=user)
                 if queryset.count() > 0:
                     return True
+            if user.groups.all()[0].name == "Client":
+                queryset = Project.objects.filter(id=project_pk, client=user)
+                if queryset.count() > 0:
+                    return True
         else:
             return False
 

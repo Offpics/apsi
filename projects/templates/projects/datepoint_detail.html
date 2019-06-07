@@ -4,37 +4,52 @@
 <p>Task: {{ object.task.title }} </p>
 <p>Worked Date: {{ object.worked_date }} </p>
 <p>Worked Time: {{ object.worked_time }} hours</p>
-<p id="approved_manager">Approved: {{ object.approved_manager }}</p>
-
-
+<p id="approved_manager">Approved by manager: {{ object.approved_manager }}</p>
+<p id="approved_client">Approved by client: {{ object.approved_client }}</p>
 
 
 {% if user.is_authenticated %}
 {% if perms.projects.change_datepoint %}
+
+{% ifequal user.groups.all.0|stringformat:"s" 'Manager' %}
 {% if object.approved_manager is False %}
-
 <a class="btn btn-success" id="btntest">Approve</a>
-
 {% else %}
 <a class="btn btn-danger" id="btntest">Disapprove</a>
 {% endif %}
+{% endifequal %}
+
+
+{% ifequal user.groups.all.0|stringformat:"s" 'Client' %}
+{% if object.approved_client is False %}
+<a class="btn btn-success" id="btntest">Approve</a>
+{% else %}
+<a class="btn btn-danger" id="btntest">Disapprove</a>
+{% endif %}
+{% endifequal %}
+
 {% endif %}
 {% endif %}
 
 <script>
+    const user_group = "{{ user.groups.all.0 }}";
     const tmp_url = "{% url 'datepoint-approve' datepoint_pk=view.kwargs.datepoint_pk %}";
     const tmp_btn = document.querySelector('#btntest');
     const p_approved = document.querySelector('#approved_manager');
     tmp_btn.addEventListener('click', function () {
         $.get(tmp_url, function (data) {
-            document.querySelector("#approved_manager").textContent = "Approved: " + data;
+            if (user_group == "Manager") {
+                document.querySelector("#approved_manager").textContent = "Approved by manager: " + data;
+            } else if (user_group == "Client") {
+                document.querySelector("#approved_client").textContent = "Approved by client: " + data;
+            };
             if (data == "False") {
                 tmp_btn.classList.replace("btn-danger", "btn-success");
                 tmp_btn.textContent = "Approve";
             } else {
                 tmp_btn.classList.replace("btn-success", "btn-danger");
                 tmp_btn.textContent = "Disapprove";
-            }
+            };
         });
     });
 </script>

@@ -69,6 +69,9 @@ class DatePoint(models.Model):
     # Wheter approved by manager.
     approved_manager = models.BooleanField(default=False)
 
+    # Wheter approved by client.
+    approved_client = models.BooleanField(default=False)
+
     def __str__(self):
         return f"Worker: {self.worker}, Task: {self.task}"
 
