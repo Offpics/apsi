@@ -25,6 +25,7 @@ from .mixins import (
     UserBelongsToProjectMixin,
     UserBelongsToTaskMixin,
     UserCanViewDatePointDetail,
+    ManagerCanEditDatepoint,
 )
 from .models import DatePoint, Project, Task
 from .utils import colors
@@ -405,7 +406,12 @@ class ApproveDatePointView(
     permission_required = "projects.change_datepoint"
 
 
-class ManagerApproveDatePointView(View):
+class ManagerApproveDatePointView(
+    PermissionRequiredMixin, ManagerCanEditDatepoint, View
+):
+
+    permission_required = "projects.change_datepoint"
+
     def get(self, *args, **kwargs):
         datepoint_pk = kwargs["datepoint_pk"]
         datepoint = get_object_or_404(DatePoint, id=datepoint_pk)

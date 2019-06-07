@@ -48,6 +48,27 @@ class UserBelongsToTaskMixin(UserPassesTestMixin):
             return False
 
 
+class ManagerCanEditDatepoint(UserPassesTestMixin):
+    """ Check wheter user is manager and can edit a datepoint. """
+
+    def test_func(self):
+        user = self.request.user
+        datepoint_pk = self.kwargs["datepoint_pk"]
+        project_pk = DatePoint.objects.filter(id=datepoint_pk)[
+            0
+        ].task.project.id
+        return self.check_user(user, project_pk)
+
+    def check_user(self, user, project_pk):
+        if user.groups.count() > 0:
+            if user.groups.all()[0].name == "Manager":
+                queryset = Project.objects.filter(id=project_pk, manager=user)
+                if queryset.count() > 0:
+                    return True
+        else:
+            return False
+
+
 class UserCanViewDatePointDetail(
     UserBelongsToProjectMixin, UserPassesTestMixin
 ):
