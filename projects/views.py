@@ -221,9 +221,13 @@ class MyProjectsListView(
 
     def get_queryset(self):
         user = get_object_or_404(User, id=self.request.user.id)
+
+        # TODO: Refactor code below because this is not a proper check.
         queryset = Project.objects.filter(manager=user)
         if len(queryset) == 0:
             queryset = Project.objects.filter(worker=user)
+        if len(queryset) == 0:
+            queryset = Project.objects.filter(client=user)
         return queryset
 
     permission_required = "projects.view_project"

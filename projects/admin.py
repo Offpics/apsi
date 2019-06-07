@@ -5,9 +5,10 @@ from .models import DatePoint, Project, Task
 
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
-    list_display = ("title", "manager", "description")
+    pass
+    # list_display = ("title", "manager", "description", "client")
 
-    readonly_fields = ("worker",)
+    # readonly_fields = ("worker",)
 
 
 @admin.register(Task)

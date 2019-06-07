@@ -21,6 +21,10 @@ class UserBelongsToProjectMixin(UserPassesTestMixin):
                 queryset = Project.objects.filter(id=project_pk, manager=user)
                 if queryset.count() > 0:
                     return True
+            elif user.groups.all()[0].name == "Client":
+                queryset = Project.objects.filter(id=project_pk, client=user)
+                if queryset.count() > 0:
+                    return True
         else:
             return False
 
@@ -41,6 +45,12 @@ class UserBelongsToTaskMixin(UserPassesTestMixin):
             elif user.groups.all()[0].name == "Manager":
                 queryset = Task.objects.filter(
                     id=task_pk, project__manager=user
+                )
+                if queryset.count() > 0:
+                    return True
+            elif user.groups.all()[0].name == "Client":
+                queryset = Task.objects.filter(
+                    id=task_pk, project__client=user
                 )
                 if queryset.count() > 0:
                     return True

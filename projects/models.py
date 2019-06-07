@@ -18,6 +18,9 @@ class Project(models.Model):
     # Workers assigned to the project.
     worker = models.ManyToManyField(User, related_name="worker_project_set")
 
+    # Client assigned to the project.
+    client = models.ManyToManyField(User, related_name="client_project_set")
+
     def __str__(self):
         return f"{self.title}, {self.manager}"
 
