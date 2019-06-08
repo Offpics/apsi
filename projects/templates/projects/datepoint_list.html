@@ -89,18 +89,18 @@
                     document.querySelector("#btn" + element).classList.replace("btn-outline-danger", "btn-outline-success");
                     document.querySelector("#btn" + element).textContent = "Approve";
                     if (user_group == "Manager") {
-                        document.querySelector("#approved_manager" + element).src = "http://127.0.0.1:8000/static/admin/img/icon-no.svg";
+                        document.querySelector("#approved_manager" + element).src = "{% static 'admin/img/icon-no.svg' %}";
                     } else if (user_group == "Client") {
-                        document.querySelector("#approved_client" + element).src = "http://127.0.0.1:8000/static/admin/img/icon-no.svg";
+                        document.querySelector("#approved_client" + element).src = "{% static 'admin/img/icon-no.svg' %}";
                     };
 
                 } else {
                     document.querySelector("#btn" + element).classList.replace("btn-outline-success", "btn-outline-danger");
                     document.querySelector("#btn" + element).textContent = "Disapprove";
                     if (user_group == "Manager") {
-                        document.querySelector("#approved_manager" + element).src = "http://127.0.0.1:8000/static/admin/img/icon-yes.svg";
+                        document.querySelector("#approved_manager" + element).src = "{% static 'admin/img/icon-yes.svg' %}";
                     } else if (user_group == "Client") {
-                        document.querySelector("#approved_client" + element).src = "http://127.0.0.1:8000/static/admin/img/icon-yes.svg";
+                        document.querySelector("#approved_client" + element).src = "{% static 'admin/img/icon-yes.svg' %}";
                     };
                 }
             });
