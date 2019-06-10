@@ -477,7 +477,7 @@ class WorkerProjectDetailView(DetailView):
         # List of datepoints used to populate fullcallendar.
         datepoints = [
             {
-                "title": datepoint.worker.username,
+                "title": datepoint.title,
                 "start": datepoint.worked_date.strftime("%Y-%m-%d"),
                 "url": reverse(
                     "datepoint-detail", kwargs={"datepoint_pk": datepoint.id}

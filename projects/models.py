@@ -51,6 +51,9 @@ class DatePoint(models.Model):
     # ForeignKey to Worker.
     worker = models.ForeignKey(User, on_delete=models.CASCADE)
 
+    # Title of the datepoint.
+    title = models.CharField(max_length=100)
+
     # Description of the working.
     description = models.CharField(max_length=100, blank=True)
 
