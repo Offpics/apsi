@@ -104,6 +104,7 @@
             <div class="card-body">
                 <h5 class="card-title">{{ object.title }}</h5>
                 <p class="card-text">Description: {{ object.description }}</p>
+                {% ifnotequal user.groups.all.0|stringformat:"s" 'Worker' %}
                 <ul class="list-group list-group-flush">
                     {% for task in object.task_set.all %}
                     <li class="list-group-item card-text">
@@ -111,6 +112,7 @@
                     </li>
                     {% endfor %}
                 </ul>
+                {% endifnotequal %}
                 <p class="card-text">Manager: {{ object.manager }}</p>
                 <p class="card-text">Workers:
                     {% for worker in object.worker.all %}
