@@ -11,7 +11,6 @@ from .views import (
     TaskCreateView,
     TaskDetailView,
     TaskUpdateView,
-    ApproveDatePointView,
     ManagerApproveDatePointView,
     home,
 )

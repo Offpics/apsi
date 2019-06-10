@@ -393,23 +393,6 @@ class DatePointListView(
     permission_required = "projects.view_datepoint"
 
 
-class ApproveDatePointView(
-    PermissionRequiredMixin, UserCanViewDatePointDetail, RedirectView
-):
-    def get_redirect_url(self, *args, **kwargs):
-        datepoint_pk = kwargs["datepoint_pk"]
-        datepoint = get_object_or_404(DatePoint, id=datepoint_pk)
-        datepoint.approved_manager = not datepoint.approved_manager
-        datepoint.save()
-
-        print(self.request.build_absolute_uri())
-        url = self.request.META["HTTP_REFERER"]
-
-        return url
-
-    permission_required = "projects.change_datepoint"
-
-
 class ManagerApproveDatePointView(
     PermissionRequiredMixin, ManagerCanEditDatepoint, View
 ):
