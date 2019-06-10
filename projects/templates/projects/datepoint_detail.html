@@ -31,6 +31,8 @@
 {% endif %}
 {% endif %}
 
+{% ifequal user.groups.all.0|stringformat:"s" 'Worker' %}
+
 <script>
     const user_group = "{{ user.groups.all.0 }}";
     const tmp_url = "{% url 'datepoint-approve' datepoint_pk=view.kwargs.datepoint_pk %}";
@@ -53,5 +55,30 @@
         });
     });
 </script>
+{% else %}
+<script>
+    const user_group = "{{ user.groups.all.0 }}";
+    const tmp_url = "{% url 'datepoint-approve' datepoint_pk=view.kwargs.datepoint_pk %}";
+    const tmp_btn = document.querySelector('#btntest');
+    const p_approved = document.querySelector('#approved_manager');
+    tmp_btn.addEventListener('click', function () {
+        $.get(tmp_url, function (data) {
+            if (user_group == "Manager") {
+                document.querySelector("#approved_manager").textContent = "Approved by manager: " + data;
+            } else if (user_group == "Client") {
+                document.querySelector("#approved_client").textContent = "Approved by client: " + data;
+            };
+            if (data == "False") {
+                tmp_btn.classList.replace("btn-danger", "btn-success");
+                tmp_btn.textContent = "Approve";
+            } else {
+                tmp_btn.classList.replace("btn-success", "btn-danger");
+                tmp_btn.textContent = "Disapprove";
+            };
+        });
+    });
+</script>
+
+{% endifequal %}
 
 {% endblock content %}

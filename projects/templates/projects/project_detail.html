@@ -15,6 +15,30 @@
 <script src="{% static 'projects/fullcalendar/timegrid/main.js' %}"></script>
 
 
+
+{% ifequal user.groups.all.0|stringformat:"s" 'Worker' %}
+
+<script>
+    var temp = JSON.parse("{{ datepoints|escapejs }}");
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var calendarEl = document.getElementById('calendar');
+
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            plugins: ['interaction', 'dayGrid', 'bootstrap', 'timeGrid'],
+            dateClick: function (info) {
+                var project_pk = "{{ view.kwargs.project_pk }}"
+                window.location.href = '/datepoint/new/' + project_pk + '/' + info.dateStr + '/';
+            },
+            events: temp,
+        });
+
+        calendar.render();
+    });
+
+</script>
+
+{% else %}
 <script>
     var temp = JSON.parse("{{ datepoints|escapejs }}");
 
@@ -34,6 +58,13 @@
     });
 
 </script>
+
+{% endifequal %}
+
+
+
+
+
 {% endblock %}
 
 
@@ -44,7 +75,7 @@
     <div class="col-md-8">
         <div id='calendar'></div>
 
-        {% if perms.projects.add_datepoint %}
+        <!-- {% if perms.projects.add_datepoint %}
         <div class="content-section">
             <form method="POST">
                 {% csrf_token %}
@@ -54,7 +85,7 @@
                 </div>
             </form>
         </div>
-        {% endif %}
+        {% endif %} -->
 
 
         {% if view.kwargs.approved %}

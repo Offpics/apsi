@@ -20,7 +20,7 @@ from django.views.generic import (
 )
 from django.views.generic.edit import FormMixin
 
-from .forms import DatePointCreateForm, ProjectCreateForm
+from .forms import DatePointCreateForm, ProjectCreateForm, DatePointCreateForm2
 from .mixins import (
     UserBelongsToProjectMixin,
     UserBelongsToTaskMixin,
@@ -309,6 +309,9 @@ class TaskUpdateView(
 
     permission_required = "projects.change_task"
 
+    def get(self, request, *args, **kwargs):
+        return
+
 
 ###############################################################################
 ###############################################################################
@@ -323,9 +326,9 @@ class TaskUpdateView(
 class DatePointCreateView(
     PermissionRequiredMixin, SuccessMessageMixin, CreateView
 ):
-    form_class = DatePointCreateForm
+    form_class = DatePointCreateForm2
     template_name = "projects/datepoint_form.html"
-    pk_url_kwarg = "datepoint_pk"
+    pk_url_kwarg = "project_pk"
 
     def get_form_kwargs(self):
         kwargs = super(DatePointCreateView, self).get_form_kwargs()
@@ -334,14 +337,45 @@ class DatePointCreateView(
         kwargs["user"] = self.request.user
 
         # Add curent project id to the form.
-        kwargs["project_pk"] = self.kwargs["datepoint_pk"]
+        kwargs["project_pk"] = self.kwargs["project_pk"]
 
         return kwargs
 
     def form_valid(self, form):
-        worker = get_object_or_404(User, id=self.request.user.id)
+        form.instance.worker = self.request.user
 
-        form.instance.worker = worker
+        form.instance.worked_date = self.kwargs["date"]
+
+        return super(DatePointCreateView, self).form_valid(form)
+
+    success_message = "DatePoint succesfully created!"
+
+    permission_required = "projects.add_datepoint"
+
+
+class DatePointCreateView2(
+    PermissionRequiredMixin, SuccessMessageMixin, CreateView
+):
+    form_class = DatePointCreateForm2
+    template_name = "projects/datepoint_form.html"
+    pk_url_kwarg = "task_pk"
+
+    def get_form_kwargs(self):
+        kwargs = super(DatePointCreateView, self).get_form_kwargs()
+
+        # Add current user to the form.
+        kwargs["user"] = self.request.user
+
+        # Add curent project id to the form.
+        kwargs["task_pk"] = self.kwargs["task_pk"]
+
+        return kwargs
+
+    def form_valid(self, form):
+        task = get_object_or_404(Task, id=self.kwargs["task_pk"])
+        form.instance.task = task
+
+        form.instance.worker = self.request.user
 
         return super(DatePointCreateView, self).form_valid(form)
 
@@ -421,3 +455,38 @@ class ManagerApproveDatePointView(
 
 def home(request):
     return render(request, "projects/home.html")
+
+
+class WorkerProjectDetailView(DetailView):
+    model = Project
+    form_class = DatePointCreateForm
+    pk_url_kwarg = "project_pk"
+
+    def get_context_data(self, **kwargs):
+        """ Populate fullcalendar with datepoints. """
+
+        # Get context.
+        context = super().get_context_data(**kwargs)
+
+        # Get DatePoints that belong to current worker.
+        queryset = DatePoint.objects.filter(
+            worker=self.request.user.id,
+            task__project_id=self.kwargs["project_pk"],
+        )
+
+        # List of datepoints used to populate fullcallendar.
+        datepoints = [
+            {
+                "title": datepoint.worker.username,
+                "start": datepoint.worked_date.strftime("%Y-%m-%d"),
+                "url": reverse(
+                    "datepoint-detail", kwargs={"datepoint_pk": datepoint.id}
+                ),
+            }
+            for datepoint in queryset
+        ]
+
+        # Create json and add it to the context.
+        context["datepoints"] = json.dumps(datepoints)
+
+        return context

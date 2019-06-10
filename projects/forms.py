@@ -36,3 +36,18 @@ class DatePointCreateForm(forms.ModelForm):
             project__id=pk
         )
         self.fields["task"].queryset = queryset
+
+
+class DatePointCreateForm2(forms.ModelForm):
+    class Meta:
+        model = DatePoint
+        fields = ["task", "worked_time", "description", "url"]
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user")
+        pk = kwargs.pop("project_pk")
+        super(DatePointCreateForm2, self).__init__(*args, **kwargs)
+        queryset = Task.objects.filter(project__worker=user).filter(
+            project__id=pk
+        )
+        self.fields["task"].queryset = queryset

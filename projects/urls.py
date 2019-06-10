@@ -12,6 +12,7 @@ from .views import (
     TaskDetailView,
     TaskUpdateView,
     ManagerApproveDatePointView,
+    WorkerProjectDetailView,
     home,
 )
 
@@ -56,9 +57,15 @@ urlpatterns = [
     ),
     # DatePoint CreateView.
     path(
-        "datepoint/new/<int:datepoint_pk>/",
+        "datepoint/new/<int:project_pk>/<slug:date>/",
         DatePointCreateView.as_view(),
         name="datepoint-create",
+    ),
+    # DatePoint CreateView from callendar.
+    path(
+        "datepoint/new/<int:task_pk>/",
+        DatePointCreateView.as_view(),
+        name="datepoint-create-from-callendar",
     ),
     # DatePoint DetailView.
     path(
@@ -77,5 +84,11 @@ urlpatterns = [
         "datepoint/<int:datepoint_pk>/approve/",
         ManagerApproveDatePointView.as_view(),
         name="datepoint-approve",
+    ),
+    # Worker ProjectDetailView.
+    path(
+        "worker/projects/<int:project_pk>/",
+        WorkerProjectDetailView.as_view(),
+        name="worker-project-detail",
     ),
 ]
