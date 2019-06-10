@@ -309,9 +309,6 @@ class TaskUpdateView(
 
     permission_required = "projects.change_task"
 
-    def get(self, request, *args, **kwargs):
-        return
-
 
 ###############################################################################
 ###############################################################################
