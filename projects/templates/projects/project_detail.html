@@ -25,7 +25,7 @@
         var calendarEl = document.getElementById('calendar');
 
         var calendar = new FullCalendar.Calendar(calendarEl, {
-            eventLimit: 2,
+            eventLimit: 4,
             plugins: ['interaction', 'dayGrid', 'bootstrap', 'timeGrid'],
             dateClick: function (info) {
                 var project_pk = "{{ view.kwargs.project_pk }}"
@@ -48,7 +48,7 @@
 
         var calendar = new FullCalendar.Calendar(calendarEl, {
             plugins: ['interaction', 'dayGrid', 'bootstrap', 'timeGrid'],
-            eventLimit: 2,
+            eventLimit: 4,
             dateClick: function (info) {
                 var project_pk = "{{ view.kwargs.project_pk }}"
                 window.location.href = '/datepoints/' + project_pk + '/' + info.dateStr + '/';
@@ -84,24 +84,22 @@
                 <p class="card-text">Description: {{ object.description }}</p>
                 {% ifnotequal user.groups.all.0|stringformat:"s" 'Worker' %}
                 <strong>Table view for:</strong>
-                <ul class="list-group list-group-flush">
+                <p class="card-text">
                     {% for task in object.task_set.all %}
-                    <li class="list-group-item card-text">
-                        <a href="{% url 'task-detail' task.id %}">{{ task.title }}</a>
-                    </li>
+                    <a href="{% url 'task-project-table' view.kwargs.project_pk task.id %}">{{ task.title }}</a>
                     {% endfor %}
-                </ul>
+                </p>
                 {% endifnotequal %}
                 <p class="card-text">Manager: {{ object.manager }}</p>
                 {% ifnotequal user.groups.all.0|stringformat:"s" 'Worker' %}
                 <p class="card-text"><strong>Table view for:</strong>
                     {% for worker in object.worker.all %}
-                    <a href="{% url 'worker-datepoint-list' view.kwargs.project_pk worker.id %}">{{ worker }}</a>
+                    <a href="{% url 'worker-project-table' view.kwargs.project_pk worker.id %}">{{ worker }}</a>
                     {% endfor %}
                 </p>
                 <p class="card-text"><strong>Callendar view:</strong>
                     {% for worker in object.worker.all %}
-                    <a href="{% url 'worker-project-detail' view.kwargs.project_pk worker.id %}">{{ worker }}</a>
+                    <a href="{% url 'worker-project-calendar' view.kwargs.project_pk worker.id %}">{{ worker }}</a>
                     {% endfor %}
                 </p>
                 {% endifnotequal %}
@@ -130,29 +128,90 @@
 
 
     <div class="col-md-8">
-        {% if worker_name %}
+        {% if calendar_view %}
         <h1>Callendar view for: {{ worker_name }}</h1>
-        {% endif %}
         <div id='calendar'></div>
-
-        <!-- {% if perms.projects.add_datepoint %}
-        <div class="content-section">
-            <form method="POST">
-                {% csrf_token %}
-                {{ form|crispy }}
-                <div class="form-group">
-                    <button class="btn btn-outline-info" type="submit">Post</button>
-                </div>
-            </form>
-        </div>
-        {% endif %} -->
-
-
-        {% if view.kwargs.approved %}
-        <a href="{% url 'project-detail' view.kwargs.project_pk %}">Normal View</a>
-        {% else %}
-        <a href="{% url 'project-detail-approved' view.kwargs.project_pk 'approved' %}">Approved View</a>
         {% endif %}
+
+
+        {% if table_view %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Worker</th>
+                    <th scope="col">Worked date</th>
+                    <th scope="col">Worked time</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Approved By Manager</th>
+                    <th scope="col">Approved By Client</th>
+                    {% if perms.projects.change_datepoint %}
+                    <th scope="col">Action</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            {% for datepoint in datepoint_list %}
+            <tbody>
+                <tr>
+                    <td>{{ datepoint.worker }}</td>
+                    <td>{{ datepoint.worked_date }}</td>
+                    <td>{{ datepoint.worked_time }}</td>
+                    <td>
+                        {% if datepoint.description %}
+                        {{ datepoint.description }}
+                        {% else %}
+                        ---
+                        {% endif %}
+                    </td>
+                    {% if datepoint.approved_manager is False %}
+
+                    <td>
+                        <img src="{% static 'admin/img/icon-no.svg' %}" id="approved_manager{{ datepoint.id }}">
+                    </td>
+                    {% else %}
+                    <td>
+                        <img src="{% static 'admin/img/icon-yes.svg' %}" id="approved_manager{{ datepoint.id }}">
+                    </td>
+                    {% endif %}
+                    {% if datepoint.approved_client is False %}
+
+                    <td>
+                        <img src="{% static 'admin/img/icon-no.svg' %}" id="approved_client{{ datepoint.id }}">
+                    </td>
+                    {% else %}
+                    <td>
+                        <img src="{% static 'admin/img/icon-yes.svg' %}" id="approved_client{{ datepoint.id }}">
+                    </td>
+                    {% endif %}
+
+                    {% if perms.projects.change_datepoint %}
+                    <td>
+                        {% ifequal user.groups.all.0|stringformat:"s" 'Manager' %}
+                        {% if datepoint.approved_manager is False %}
+                        <button class="btn btn-outline-success" id="btn{{ datepoint.id }}">Approve</button>
+                        {% else %}
+                        <button class="btn btn-outline-danger" id="btn{{ datepoint.id }}">Disapprove</button>
+                        {% endif %}
+                        {% endifequal %}
+
+
+                        {% ifequal user.groups.all.0|stringformat:"s" 'Client' %}
+                        {% if datepoint.approved_client is False %}
+                        <button class="btn btn-outline-success" id="btn{{ datepoint.id }}">Approve</button>
+                        {% else %}
+                        <button class="btn btn-outline-danger" id="btn{{ datepoint.id }}">Disapprove</button>
+                        {% endif %}
+                        {% endifequal %}
+                    </td>
+                    {% endif %}
+
+                </tr>
+            </tbody>
+            {% endfor %}
+        </table>
+        {% endif %}
+
+
+
 
     </div>
 
@@ -161,7 +220,37 @@
 </div>
 
 
+<script>
+    const datepoints_pks = JSON.parse("{{ datepoints_pks | escapejs }}");
+    const user_group = "{{ user.groups.all.0 }}";
 
+    datepoints_pks.forEach(element => {
+
+        document.querySelector("#btn" + element).addEventListener('click', function () {
+            $.get("/datepoint/" + element + "/approve/", function (data) {
+                if (data == "False") {
+                    document.querySelector("#btn" + element).classList.replace("btn-outline-danger", "btn-outline-success");
+                    document.querySelector("#btn" + element).textContent = "Approve";
+                    if (user_group == "Manager") {
+                        document.querySelector("#approved_manager" + element).src = "{% static 'admin/img/icon-no.svg' %}";
+                    } else if (user_group == "Client") {
+                        document.querySelector("#approved_client" + element).src = "{% static 'admin/img/icon-no.svg' %}";
+                    };
+
+                } else {
+                    document.querySelector("#btn" + element).classList.replace("btn-outline-success", "btn-outline-danger");
+                    document.querySelector("#btn" + element).textContent = "Disapprove";
+                    if (user_group == "Manager") {
+                        document.querySelector("#approved_manager" + element).src = "{% static 'admin/img/icon-yes.svg' %}";
+                    } else if (user_group == "Client") {
+                        document.querySelector("#approved_client" + element).src = "{% static 'admin/img/icon-yes.svg' %}";
+                    };
+                }
+            });
+        });
+    });
+
+</script>
 
 
 {% endblock content2 %}

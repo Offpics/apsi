@@ -29,9 +29,22 @@ urlpatterns = [
         name="project-detail",
     ),
     path(
-        "projects/<int:project_pk>/<int:worker_pk>/",
+        "projects/<int:project_pk>/calendar/<int:worker_pk>/",
         ProjectDetailView.as_view(),
-        name="worker-project-detail",
+        {"calendar_view": True},
+        name="worker-project-calendar",
+    ),
+    path(
+        "projects/<int:project_pk>/table/<int:worker_pk>/",
+        ProjectDetailView.as_view(),
+        {"table_view": True},
+        name="worker-project-table",
+    ),
+    path(
+        "projects/<int:project_pk>/<int:task_pk>/",
+        ProjectDetailView.as_view(),
+        {"table_view": True},
+        name="task-project-table",
     ),
     # Project DetailView with approved colors for fullcalendar.
     path(

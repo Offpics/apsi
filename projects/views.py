@@ -68,7 +68,7 @@ class ProjectCreateView(
 
 
 class ProjectDetailView(
-    PermissionRequiredMixin, FormMixin, UserBelongsToProjectMixin, DetailView
+    PermissionRequiredMixin, UserBelongsToProjectMixin, DetailView
 ):
     """
     TODO: Change this View according to
@@ -76,39 +76,37 @@ class ProjectDetailView(
     """
 
     model = Project
-    form_class = DatePointCreateForm
     pk_url_kwarg = "project_pk"
-
-    def get_form_kwargs(self):
-
-        # Get kwargs.
-        kwargs = super().get_form_kwargs()
-
-        # Add data that is used to render DatePointCreateForm.
-        kwargs["user"] = self.request.user
-        kwargs["project_pk"] = self.kwargs["project_pk"]
-
-        return kwargs
-
-    def get_success_url(self):
-        """
-        Redirect to this url after posting valid form.
-        """
-        return reverse("project-detail", kwargs={"project_pk": self.object.pk})
 
     def get_context_data(self, **kwargs):
         """ Populate context with DatePointCreateForm. """
 
+        calendar_view = False
+        table_view = False
+
         # Get context.
         context = super().get_context_data(**kwargs)
-
-        # Populate context with form.
-        context["form"] = self.get_form()
 
         # Get DatePoints that belong to current project.
         queryset = DatePoint.objects.filter(
             task__project_id=self.kwargs["project_pk"]
         )
+
+        try:
+            self.kwargs["calendar_view"]
+        except KeyError:
+            pass
+        else:
+            calendar_view = True
+            context["calendar_view"] = True
+
+        try:
+            self.kwargs["table_view"]
+        except KeyError:
+            pass
+        else:
+            table_view = True
+            context["table_view"] = True
 
         try:
             worker = get_object_or_404(User, id=self.kwargs["worker_pk"])
@@ -117,33 +115,21 @@ class ProjectDetailView(
         else:
             queryset = DatePoint.objects.filter(
                 task__project_id=self.kwargs["project_pk"], worker=worker
-            )
+            ).order_by("-worked_date")
             context["worker_name"] = worker.username
 
-        # Decide which wheter DetailView was called with "approved" kwarg.
         try:
-            approved = self.kwargs["approved"]
+            task = get_object_or_404(Task, id=self.kwargs["task_pk"])
         except KeyError:
-            # If approved kwargs is not present display fullcalendar with
-            # different colors for each task.
-            approved = False
+            pass
         else:
-            # If approved kwargs is present display fullcalend with
-            # colors corresponding to DatePoint.approved field.
-            if approved == "approved":
-                approved = True
-            else:
-                print("xd")
-                raise Http404("Page not found!")
+            queryset = DatePoint.objects.filter(task=task).order_by(
+                "-worked_date"
+            )
 
-        if not approved:
-            # Set of unique tasks in queryset.
-            # TODO: Check wheter it is more optimal to use set comprehension here
-            # or a distinc query.
-            tasks = {datepoint.task.id for datepoint in queryset}
-
+        if calendar_view:
             # Assign one color to one task and create dict of it.
-            tasks_color = dict(zip(tasks, colors))
+            # tasks_color = dict(zip(tasks, colors))
 
             # Create list of dictionaries that is used to populate calendar events.
             datepoints = [
@@ -153,31 +139,20 @@ class ProjectDetailView(
                     "url": reverse(
                         "datepoint-detail", kwargs={"datepoint_pk": item.id}
                     ),
-                    "color": tasks_color[item.task.id],
+                    # "color": tasks_color[item.task.id],
                 }
                 for item in queryset
             ]
 
             # Create json and add it to context.
             context["datepoints"] = json.dumps(datepoints)
-        else:
-            tasks = {datepoint.task.id for datepoint in queryset}
+        elif table_view:
 
-            # Create list of dictionaries that is used to populate calendar events.
-            datepoints = [
-                {
-                    "title": item.worker.username,
-                    "start": item.worked_date.strftime("%Y-%m-%d"),
-                    "url": reverse(
-                        "datepoint-detail", kwargs={"datepoint_pk": item.id}
-                    ),
-                    "color": "green" if item.approved_manager else "red",
-                }
-                for item in queryset
-            ]
+            context["datepoint_list"] = queryset
 
-            # Create json and add it to context.
-            context["datepoints"] = json.dumps(datepoints)
+            datepoints_pks = [item.pk for item in queryset]
+
+            context["datepoints_pks"] = json.dumps(datepoints_pks)
 
         return context
 
@@ -445,13 +420,11 @@ class ManagerApproveDatePointView(
     def get(self, *args, **kwargs):
 
         user = get_object_or_404(User, id=self.request.user.id)
-        print(user)
 
         datepoint_pk = kwargs["datepoint_pk"]
         datepoint = get_object_or_404(DatePoint, id=datepoint_pk)
 
         if user.groups.count() > 0:
-            print(user.groups.all()[0])
             if user.groups.all()[0].name == "Manager":
                 datepoint.approved_manager = not datepoint.approved_manager
                 datepoint.save()
@@ -497,6 +470,7 @@ class WorkerProjectDetailView(DetailView):
 
         # Create json and add it to the context.
         context["datepoints"] = json.dumps(datepoints)
+        context["calendar_view"] = True
 
         return context
 
