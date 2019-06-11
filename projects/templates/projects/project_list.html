@@ -3,9 +3,15 @@
 
 
 {% for project in projects %}
+{% ifequal user.groups.all.0|stringformat:"s" 'Worker' %}
 <p>
-    <a href="{% url 'project-detail' project.pk %}">{{ project }} </a>
+    <a href="{% url 'worker-project-detail' project.pk %}">{{ project }}</a>
 </p>
+{% else %}
+<p>
+    <a href=" {% url 'project-detail' project.pk %}">{{ project }} </a>
+</p>
+{% endifequal %}
 {% endfor %}
 
 {% endblock content %}

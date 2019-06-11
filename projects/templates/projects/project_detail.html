@@ -73,8 +73,66 @@
 
 {% block content2 %}
 
+
 <div class="row">
+
+    <div class="col-md-4">
+        <div class="card bg-light mb-3">
+            <!-- <div class="card-header">{{ object.title }}</div> -->
+            <div class="card-body">
+                <h5 class="card-title">{{ object.title }}</h5>
+                <p class="card-text">Description: {{ object.description }}</p>
+                {% ifnotequal user.groups.all.0|stringformat:"s" 'Worker' %}
+                <strong>Table view for:</strong>
+                <ul class="list-group list-group-flush">
+                    {% for task in object.task_set.all %}
+                    <li class="list-group-item card-text">
+                        <a href="{% url 'task-detail' task.id %}">{{ task.title }}</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% endifnotequal %}
+                <p class="card-text">Manager: {{ object.manager }}</p>
+                {% ifnotequal user.groups.all.0|stringformat:"s" 'Worker' %}
+                <p class="card-text"><strong>Table view for:</strong>
+                    {% for worker in object.worker.all %}
+                    <a href="{% url 'worker-datepoint-list' view.kwargs.project_pk worker.id %}">{{ worker }}</a>
+                    {% endfor %}
+                </p>
+                <p class="card-text"><strong>Callendar view:</strong>
+                    {% for worker in object.worker.all %}
+                    <a href="{% url 'worker-project-detail' view.kwargs.project_pk worker.id %}">{{ worker }}</a>
+                    {% endfor %}
+                </p>
+                {% endifnotequal %}
+            </div>
+            <div class="card-footer">
+                <div class="btn-group" role="group">
+                    {% if perms.projects.add_task %}
+                    <a href="{% url 'task-create' object.id %}" class="btn btn-outline-info">New Task</a>
+                    {% endif %}
+
+                    {% if perms.projects.change_project %}
+                    <a href="{% url 'project-update' object.id %}" class="btn btn-outline-info">Update Project</a>
+                    {% endif %}
+
+                    {% ifequal user.groups.all.0|stringformat:"s" 'Worker' %}
+                    <a href="{% url 'worker-datepoint-list' object.id user.id %}" class="btn btn-outline-info">List my
+                        work
+                    </a>
+                    {% endifequal %}
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+
     <div class="col-md-8">
+        {% if worker_name %}
+        <h1>Callendar view for: {{ worker_name }}</h1>
+        {% endif %}
         <div id='calendar'></div>
 
         <!-- {% if perms.projects.add_datepoint %}
@@ -98,42 +156,6 @@
 
     </div>
 
-    <div class="col-md-4">
-        <div class="card bg-light mb-3">
-            <!-- <div class="card-header">{{ object.title }}</div> -->
-            <div class="card-body">
-                <h5 class="card-title">{{ object.title }}</h5>
-                <p class="card-text">Description: {{ object.description }}</p>
-                {% ifnotequal user.groups.all.0|stringformat:"s" 'Worker' %}
-                <ul class="list-group list-group-flush">
-                    {% for task in object.task_set.all %}
-                    <li class="list-group-item card-text">
-                        <a href="{% url 'task-detail' task.id %}">{{ task.title }}</a>
-                    </li>
-                    {% endfor %}
-                </ul>
-                {% endifnotequal %}
-                <p class="card-text">Manager: {{ object.manager }}</p>
-                <p class="card-text">Workers:
-                    {% for worker in object.worker.all %}
-                    {{ worker }}
-                    {% endfor %}
-                </p>
-            </div>
-            <div class="card-footer">
-                <div class="btn-group" role="group">
-                    {% if perms.projects.add_task %}
-                    <a href="{% url 'task-create' object.id %}" class="btn btn-outline-info">New Task</a>
-                    {% endif %}
-
-                    {% if perms.projects.change_project %}
-                    <a href="{% url 'project-update' object.id %}" class="btn btn-outline-info">Update Project</a>
-                    {% endif %}
-                </div>
-
-            </div>
-        </div>
-    </div>
 
 </div>
 </div>
@@ -141,17 +163,5 @@
 
 
 
-
-<style>
-    /* .fc-event-time,
-    .fc-event-title {
-        padding: 0 1px;
-        white-space: nowrap;
-    } */
-
-    .fc-title {
-        white-space: nowrap;
-    }
-</style>
 
 {% endblock content2 %}

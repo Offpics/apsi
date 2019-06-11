@@ -110,6 +110,16 @@ class ProjectDetailView(
             task__project_id=self.kwargs["project_pk"]
         )
 
+        try:
+            worker = get_object_or_404(User, id=self.kwargs["worker_pk"])
+        except KeyError:
+            pass
+        else:
+            queryset = DatePoint.objects.filter(
+                task__project_id=self.kwargs["project_pk"], worker=worker
+            )
+            context["worker_name"] = worker.username
+
         # Decide which wheter DetailView was called with "approved" kwarg.
         try:
             approved = self.kwargs["approved"]
@@ -401,8 +411,9 @@ class DatePointListView(
 
         # Get new queryset
         queryset = DatePoint.objects.filter(
-            task__project_id=self.kwargs["project_pk"]
-        ).filter(worked_date=self.kwargs["date"])
+            task__project_id=self.kwargs["project_pk"],
+            worked_date=self.kwargs["date"],
+        )
 
         return queryset
 
@@ -412,8 +423,9 @@ class DatePointListView(
         context = super().get_context_data(**kwargs)
 
         queryset = DatePoint.objects.filter(
-            task__project_id=self.kwargs["project_pk"]
-        ).filter(worked_date=self.kwargs["date"])
+            task__project_id=self.kwargs["project_pk"],
+            worked_date=self.kwargs["date"],
+        )
 
         datepoints_pks = [item.pk for item in queryset]
 
@@ -487,3 +499,52 @@ class WorkerProjectDetailView(DetailView):
         context["datepoints"] = json.dumps(datepoints)
 
         return context
+
+
+class ManagerProjectDetailView(DetailView):
+
+    model = Project
+    form_class = DatePointCreateForm
+    pk_url_kwarg = "project_pk"
+
+
+class WorkerDatePointListView(
+    PermissionRequiredMixin, UserBelongsToProjectMixin, ListView
+):
+    model = DatePoint
+
+    context_object_name = "datepoints"
+
+    ordering = ["-worked_date"]
+
+    def get_queryset(self):
+
+        worker = get_object_or_404(User, id=self.kwargs["worker_pk"])
+
+        # Get new queryset
+        queryset = DatePoint.objects.filter(
+            task__project_id=self.kwargs["project_pk"], worker=worker
+        ).order_by("worked_date")
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        # TODO: This functions is probably useless because ListView
+        # should already provide this data to the template.
+
+        # Get context.
+        context = super().get_context_data(**kwargs)
+
+        worker = get_object_or_404(User, id=self.kwargs["worker_pk"])
+
+        queryset = DatePoint.objects.filter(
+            task__project_id=self.kwargs["project_pk"], worker=worker
+        ).order_by("worked_date")
+
+        datepoints_pks = [item.pk for item in queryset]
+
+        context["datepoints_pks"] = json.dumps(datepoints_pks)
+
+        return context
+
+    permission_required = "projects.view_datepoint"

@@ -13,6 +13,7 @@ from .views import (
     TaskUpdateView,
     ManagerApproveDatePointView,
     WorkerProjectDetailView,
+    WorkerDatePointListView,
     home,
 )
 
@@ -26,6 +27,11 @@ urlpatterns = [
         "projects/<int:project_pk>/",
         ProjectDetailView.as_view(),
         name="project-detail",
+    ),
+    path(
+        "projects/<int:project_pk>/<int:worker_pk>/",
+        ProjectDetailView.as_view(),
+        name="worker-project-detail",
     ),
     # Project DetailView with approved colors for fullcalendar.
     path(
@@ -72,6 +78,12 @@ urlpatterns = [
         "datepoint/<int:datepoint_pk>/",
         DatePointDetailView.as_view(),
         name="datepoint-detail",
+    ),
+    # List of user's DatePoints within a project.
+    path(
+        "datepoints/worker/<int:project_pk>/<int:worker_pk>/",
+        WorkerDatePointListView.as_view(),
+        name="worker-datepoint-list",
     ),
     # List of DatePoint within project in given day.
     path(
