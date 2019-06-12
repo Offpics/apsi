@@ -35,9 +35,9 @@ class ProjectAdmin(admin.ModelAdmin):
 
 @admin.register(Task)
 class TaskAdmin(admin.ModelAdmin):
-    fields = ("title", "project")
-    readonly_fields = ("title",)
-    list_display = ("title", "project")
+    fields = ("title", "description", "project")
+    readonly_fields = ("title", "description")
+    list_display = ("title", "project", "description")
 
 
 @admin.register(DatePoint)
@@ -46,9 +46,10 @@ class DatePointAdmin(admin.ModelAdmin):
         "task",
         "worker",
         "approved_manager",
+        "approved_client",
         "worked_date",
         "worked_time",
-        "date_created",
+        "title",
         "description",
         "url",
     )
@@ -57,9 +58,10 @@ class DatePointAdmin(admin.ModelAdmin):
         "task",
         "worker",
         "approved_manager",
+        "approved_client",
         "worked_date",
         "worked_time",
-        "date_created",
+        "title",
         "description",
         "url",
     )
