@@ -15,6 +15,7 @@ from .views import (
     WorkerProjectDetailView,
     WorkerDatePointListView,
     home,
+    DatePointUpdateView,
 )
 
 urlpatterns = [
@@ -103,6 +104,11 @@ urlpatterns = [
         "datepoint/<int:datepoint_pk>/",
         DatePointDetailView.as_view(),
         name="datepoint-detail",
+    ),
+    path(
+        "datepoint/update/<int:datepoint_pk>/",
+        DatePointUpdateView.as_view(),
+        name="datepoint-update",
     ),
     # List of user's DatePoints within a project.
     path(

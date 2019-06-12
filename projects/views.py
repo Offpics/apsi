@@ -19,6 +19,7 @@ from django.views.generic import (
     View,
 )
 from django.views.generic.edit import FormMixin
+from django.views.generic.detail import SingleObjectMixin
 
 from .forms import (
     DatePointCreateForm,
@@ -31,6 +32,7 @@ from .mixins import (
     UserBelongsToProjectMixin,
     UserBelongsToTaskMixin,
     UserCanViewDatePointDetail,
+    WorkerCanChangeDatePointDetail,
 )
 from .models import DatePoint, Project, Task
 from .utils import colors
@@ -128,6 +130,7 @@ class ProjectDetailView(
         except KeyError:
             pass
         else:
+            context["task_title"] = task.title
             queryset = DatePoint.objects.filter(task=task).order_by(
                 "-worked_date"
             )
@@ -457,6 +460,32 @@ class DatePointDetailView(
     pk_url_kwarg = "datepoint_pk"
 
     permission_required = "projects.view_datepoint"
+
+
+class DatePointUpdateView(
+    PermissionRequiredMixin, WorkerCanChangeDatePointDetail, UpdateView
+):
+
+    model = DatePoint
+    pk_url_kwarg = "datepoint_pk"
+
+    fields = ["title", "task", "worked_time", "description", "url"]
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+
+        if self.object.approved_client:
+            return HttpResponse(
+                "Approved by client, cannot change", status=451
+            )
+
+        return super().get(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        form.instance.approved_manager = False
+        return super(DatePointUpdateView, self).form_valid(form)
+
+    permission_required = "projects.change_datepoint"
 
 
 class DatePointListView(

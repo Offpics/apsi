@@ -2,7 +2,9 @@
 {% load crispy_forms_tags %}
 {% block content2 %}
 
+{% if view.kwargs.date %}
 <h3>Create datepoint for {{ view.kwargs.date }}</h3>
+{% endif %}
 <div class="content-section">
     <form method="POST">
         {% csrf_token %}

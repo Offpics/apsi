@@ -33,6 +33,10 @@
 
 {% ifequal user.groups.all.0|stringformat:"s" 'Worker' %}
 
+{% if object.approved_client is False %}
+<a href="{% url 'datepoint-update' object.id %}">Update current datepoint.</a>
+{% endif %}
+
 <script>
     const user_group = "{{ user.groups.all.0 }}";
     const tmp_url = "{% url 'datepoint-approve' datepoint_pk=view.kwargs.datepoint_pk %}";

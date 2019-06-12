@@ -100,3 +100,16 @@ class UserCanViewDatePointDetail(
         user = self.request.user
 
         return super().check_user(user, project_pk)
+
+
+class WorkerCanChangeDatePointDetail(UserPassesTestMixin):
+    """ Check wheter user can view the DatePoint.
+    Get project id that datepoint relates to and
+    checks wheter user belongs to this project id.
+    """
+
+    def test_func(self):
+        datepoint_pk = self.kwargs["datepoint_pk"]
+        user = self.request.user
+
+        return DatePoint.objects.filter(id=datepoint_pk, worker=user).exists()

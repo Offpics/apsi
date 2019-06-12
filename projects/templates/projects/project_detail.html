@@ -163,6 +163,19 @@
 
 
         {% if table_view %}
+        {% if task_title %}
+        <h3>Task: {{ task_title }} </h3>
+        {% endif %}
+
+        {% if perms.projects.change_task %}
+        {% if view.kwargs.task_pk %}
+        <p><a href="{% url 'task-update' view.kwargs.task_pk %}">Update Current Task</a></p>
+        {% endif %}
+        {% endif %}
+
+
+
+
         <table class="table">
             <thead>
                 <tr>
