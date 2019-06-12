@@ -548,11 +548,9 @@ class ManagerApproveDatePointView(
                 return HttpResponse(datepoint.approved_client)
 
 
-def home(request):
-    return render(request, "projects/home.html")
-
-
-class WorkerProjectDetailView(DetailView):
+class WorkerProjectDetailView(
+    PermissionRequiredMixin, UserBelongsToProjectMixin, DetailView
+):
     model = Project
     form_class = DatePointCreateForm
     pk_url_kwarg = "project_pk"
@@ -587,12 +585,7 @@ class WorkerProjectDetailView(DetailView):
 
         return context
 
-
-class ManagerProjectDetailView(DetailView):
-
-    model = Project
-    form_class = DatePointCreateForm
-    pk_url_kwarg = "project_pk"
+    permission_required = "projects.view_project"
 
 
 class WorkerDatePointListView(
@@ -635,3 +628,7 @@ class WorkerDatePointListView(
         return context
 
     permission_required = "projects.view_datepoint"
+
+
+def home(request):
+    return render(request, "projects/home.html")
