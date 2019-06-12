@@ -81,5 +81,6 @@ class DatePoint(models.Model):
     # Returns to project-detail page after creating datepoint for the project.
     def get_absolute_url(self):
         return reverse(
-            "project-detail", kwargs={"project_pk": self.task.project.pk}
+            "worker-project-detail",
+            kwargs={"project_pk": self.task.project.pk},
         )

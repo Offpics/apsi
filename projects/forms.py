@@ -1,4 +1,5 @@
 from datetime import datetime
+from crispy_forms.helper import FormHelper
 
 from django import forms
 from django.contrib.auth.models import User
@@ -41,6 +42,9 @@ class DatePointCreateForm(forms.ModelForm):
 
 
 class DatePointCreateForm2(forms.ModelForm):
+
+    worked_time = forms.IntegerField(max_value=12, min_value=1)
+
     class Meta:
         model = DatePoint
         fields = ["task", "title", "worked_time", "description", "url"]
@@ -76,9 +80,8 @@ class QueryDatepointsForm(forms.Form):
         required=True,
     )
 
-    # def __init__(self, *args, **kwargs):
-    #     return super(QueryDatepointsForm, self).__init__(*args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        super(QueryDatepointsForm, self).__init__(*args, **kwargs)
 
-    #     self.initial["date"] = "6"
-
-    # date = forms.DateField()
+        self.helper = FormHelper()
+        self.helper.form_show_labels = False

@@ -166,7 +166,8 @@ class ProjectDetailView(
                     # Create list of dictionaries that is used to populate calendar events.
                     datepoints = [
                         {
-                            "title": item.worker.username,
+                            "title": f"{item.task.title} | {item.worked_time}h",
+                            # "title": item.worker.username,
                             "start": item.worked_date.strftime("%Y-%m-%d"),
                             "url": reverse(
                                 "datepoint-detail",
@@ -180,7 +181,8 @@ class ProjectDetailView(
 
                     datepoints = [
                         {
-                            "title": item.worker.username,
+                            "title": f"{item.task.title} | {item.worked_time}h",
+                            # "title": item.worker.username,
                             "start": item.worked_date.strftime("%Y-%m-%d"),
                             "url": reverse(
                                 "datepoint-detail",
@@ -197,7 +199,8 @@ class ProjectDetailView(
 
                     datepoints = [
                         {
-                            "title": item.worker.username,
+                            "title": f"{item.task.title} | {item.worked_time}h",
+                            # "title": item.worker.username,
                             "start": item.worked_date.strftime("%Y-%m-%d"),
                             "url": reverse(
                                 "datepoint-detail",
@@ -540,7 +543,7 @@ class WorkerProjectDetailView(DetailView):
         # List of datepoints used to populate fullcallendar.
         datepoints = [
             {
-                "title": datepoint.title,
+                "title": f"{datepoint.task.title} | {datepoint.worked_time}h",
                 "start": datepoint.worked_date.strftime("%Y-%m-%d"),
                 "url": reverse(
                     "datepoint-detail", kwargs={"datepoint_pk": datepoint.id}

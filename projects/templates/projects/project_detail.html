@@ -103,6 +103,33 @@
                     {% endfor %}
                 </p>
                 {% endifnotequal %}
+
+
+                {% ifnotequal user.groups.all.0|stringformat:"s" 'Worker' %}
+
+                <div class="content-section">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-8">
+                                {% crispy form %}
+                            </div>
+                            <div class="col-4">
+                                <button class="btn btn-outline-info" type="submit">List</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div>
+                    <a href="{% url 'project-detail-all' view.kwargs.project_pk %}" class="btn btn-outline-info">List
+                        all
+                    </a>
+                </div>
+
+                {% endifnotequal %}
+
+
             </div>
             <div class="card-footer">
                 <div class="btn-group" role="group">
@@ -116,30 +143,11 @@
 
 
                     {% ifequal user.groups.all.0|stringformat:"s" 'Worker' %}
-                    <a href="{% url 'worker-datepoint-list' object.id user.id %}" class="btn btn-outline-info">List my
-                        work
-                    </a>
+                    <a href="{% url 'worker-project-table' view.kwargs.project_pk user.id %}"
+                        class="btn btn-outline-info">List my work</a>
                     {% endifequal %}
                 </div>
 
-
-                {% ifnotequal user.groups.all.0|stringformat:"s" 'Worker' %}
-
-                <div class="content-section">
-                    <form method="POST">
-                        {% csrf_token %}
-                        {{ form }}
-                        <button class="btn btn-outline-info" type="submit">List</button>
-                    </form>
-                </div>
-
-                <div>
-                    <a href="{% url 'project-detail-all' view.kwargs.project_pk %}" class="btn btn-outline-info">List
-                        all
-                    </a>
-                </div>
-
-                {% endifnotequal %}
 
             </div>
         </div>
@@ -273,6 +281,7 @@
         });
     });
 
+    $('label[for="id_worked_time"]').setAttrbute('Time')
 </script>
 
 
