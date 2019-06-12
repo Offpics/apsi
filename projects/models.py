@@ -21,6 +21,9 @@ class Project(models.Model):
     # Client assigned to the project.
     client = models.ManyToManyField(User, related_name="client_project_set")
 
+    # Price per hour.
+    price_per_hour = models.PositiveIntegerField(blank=True, null=True)
+
     def __str__(self):
         return f"{self.title}, {self.manager}"
 
