@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django import forms
 from django.contrib.auth.models import User
 
@@ -51,3 +53,32 @@ class DatePointCreateForm2(forms.ModelForm):
             project__id=pk
         )
         self.fields["task"].queryset = queryset
+
+
+class QueryDatepointsForm(forms.Form):
+    month = forms.ChoiceField(
+        widget=forms.Select(),
+        choices=[
+            ("1", "January"),
+            ("2", "February"),
+            ("3", "March"),
+            ("4", "April"),
+            ("5", "May"),
+            ("6", "June"),
+            ("7", "July"),
+            ("8", "August"),
+            ("9", "September"),
+            ("10", "October"),
+            ("11", "November"),
+            ("12", "December"),
+        ],
+        initial=f"{datetime.now().month}",
+        required=True,
+    )
+
+    # def __init__(self, *args, **kwargs):
+    #     return super(QueryDatepointsForm, self).__init__(*args, **kwargs)
+
+    #     self.initial["date"] = "6"
+
+    # date = forms.DateField()

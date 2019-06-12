@@ -29,6 +29,18 @@ urlpatterns = [
         name="project-detail",
     ),
     path(
+        "projects/<int:project_pk>/all/",
+        ProjectDetailView.as_view(),
+        {"all": True, "table_view": True},
+        name="project-detail-all",
+    ),
+    path(
+        "projects/<int:project_pk>/<int:month>/<int:year>/",
+        ProjectDetailView.as_view(),
+        {"table_view": True},
+        name="project-date-table",
+    ),
+    path(
         "projects/<int:project_pk>/calendar/<int:worker_pk>/",
         ProjectDetailView.as_view(),
         {"calendar_view": True},
