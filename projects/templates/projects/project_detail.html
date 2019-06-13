@@ -82,6 +82,14 @@
             <div class="card-body">
                 <h5 class="card-title">{{ object.title }}</h5>
                 <p class="card-text">Description: {{ object.description }}</p>
+
+                {% if object.client_detail %}
+                <p class="card-text"> Client name: {{ object.client_detail.name }}
+                </p>
+                {% endif %}
+
+
+
                 {% ifnotequal user.groups.all.0|stringformat:"s" 'Worker' %}
                 <strong>Table view for:</strong>
                 <p class="card-text">
@@ -146,6 +154,12 @@
                     <a href="{% url 'worker-project-table' view.kwargs.project_pk user.id %}"
                         class="btn btn-outline-info">List my work</a>
                     {% endifequal %}
+
+
+                    {% ifequal user.groups.all.0|stringformat:"s" 'Client' %}
+
+                    <a href="{% url 'bill' view.kwargs.project_pk %}" class="btn btn-outline-info">Generate Bill</a>
+                    {% endifequal %}
                 </div>
 
 
@@ -184,10 +198,12 @@
                     <th scope="col">Worked time</th>
                     <th scope="col">Description</th>
                     <th scope="col">Approved By Manager</th>
+                    {% if object.client.exists %}
                     <th scope="col">Approved By Client</th>
-                    {% if perms.projects.change_datepoint %}
-                    <th scope="col">Action</th>
                     {% endif %}
+                    {% ifnotequal user.groups.all.0|stringformat:"s" 'Worker' %}
+                    <th scope="col">Action</th>
+                    {% endifnotequal %}
                 </tr>
             </thead>
             {% for datepoint in datepoint_list %}
@@ -213,6 +229,8 @@
                         <img src="{% static 'admin/img/icon-yes.svg' %}" id="approved_manager{{ datepoint.id }}">
                     </td>
                     {% endif %}
+
+                    {% if object.client.exists %}
                     {% if datepoint.approved_client is False %}
 
                     <td>
@@ -223,8 +241,9 @@
                         <img src="{% static 'admin/img/icon-yes.svg' %}" id="approved_client{{ datepoint.id }}">
                     </td>
                     {% endif %}
+                    {% endif %}
 
-                    {% if perms.projects.change_datepoint %}
+                    {% ifnotequal user.groups.all.0|stringformat:"s" 'Worker' %}
                     <td>
                         {% ifequal user.groups.all.0|stringformat:"s" 'Manager' %}
                         {% if datepoint.approved_manager is False %}
@@ -243,7 +262,7 @@
                         {% endif %}
                         {% endifequal %}
                     </td>
-                    {% endif %}
+                    {% endifnotequal %}
 
                 </tr>
             </tbody>

@@ -5,7 +5,9 @@
 <p>Worked Date: {{ object.worked_date }} </p>
 <p>Worked Time: {{ object.worked_time }} hours</p>
 <p id="approved_manager">Approved by manager: {{ object.approved_manager }}</p>
+{% if object.task.project.client.exists %}
 <p id="approved_client">Approved by client: {{ object.approved_client }}</p>
+{% endif %}
 
 
 {% if user.is_authenticated %}
