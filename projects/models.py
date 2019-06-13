@@ -3,6 +3,17 @@ from django.db import models
 from django.urls import reverse
 
 
+class ClientDetail(models.Model):
+    name = models.CharField(max_length=100)
+    street = models.CharField(max_length=200)
+    postal_code = models.CharField(max_length=100)
+    city = models.CharField(max_length=100)
+    nip = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"{self.name}"
+
+
 class Project(models.Model):
     # Title of the project.
     title = models.CharField(max_length=100)
@@ -12,7 +23,10 @@ class Project(models.Model):
 
     # Manager of the project.
     manager = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="manager_project_set"
+        User,
+        on_delete=models.SET_NULL,
+        related_name="manager_project_set",
+        null=True,
     )
 
     # Workers assigned to the project.
@@ -23,6 +37,10 @@ class Project(models.Model):
 
     # Price per hour.
     price_per_hour = models.PositiveIntegerField(blank=True, null=True)
+
+    client_detail = models.ForeignKey(
+        ClientDetail, on_delete=models.SET_NULL, blank=True, null=True
+    )
 
     def __str__(self):
         return f"{self.title}, {self.manager}"
@@ -90,3 +108,4 @@ class DatePoint(models.Model):
             "worker-project-detail",
             kwargs={"project_pk": self.task.project.pk},
         )
+

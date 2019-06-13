@@ -55,22 +55,22 @@
         </tr>
         <tr>
             <td style="text-align: right;">Nabywca:</td>
-            <td>KLIENT</td>
+            <td>{{ client_detail.name }}</td>
             <td></td>
         </tr>
         <tr>
             <td></td>
-            <td>ULICA</td>
+            <td>{{ client_detail.street }}</td>
             <td></td>
         </tr>
         <tr>
             <td></td>
-            <td>KOD POCZTOWY MIASTO</td>
+            <td>{{ client_detail.postal_code}}, {{ client_detail.city }}</td>
             <td></td>
         </tr>
         <tr>
             <td></td>
-            <td>NIP 0000000000</td>
+            <td>NIP {{client_detail.nip }}</td>
             <td></td>
         </tr>
     </table>

@@ -643,9 +643,18 @@ class MyPDF(PDFTemplateView):
     def get_context_data(self, **kwargs):
         context = super(MyPDF, self).get_context_data(**kwargs)
 
-        price_per_hour = Project.objects.get(
-            id=self.kwargs["project_pk"]
-        ).price_per_hour
+        project = Project.objects.get(id=self.kwargs["project_pk"])
+        price_per_hour = project.price_per_hour
+
+        client_detail = {
+            "name": project.client_detail.name,
+            "street": project.client_detail.street,
+            "postal_code": project.client_detail.postal_code,
+            "city": project.client_detail.city,
+            "nip": project.client_detail.nip,
+        }
+
+        context["client_detail"] = client_detail
 
         if price_per_hour is None:
             raise Http404(

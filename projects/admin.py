@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.models import User
 
-from .models import DatePoint, Project, Task
+from .models import DatePoint, Project, Task, ClientDetail
 
 
 @admin.register(Project)
@@ -13,8 +13,9 @@ class ProjectAdmin(admin.ModelAdmin):
         "worker",
         "client",
         "price_per_hour",
+        "client_detail",
     )
-    list_display = ("title", "manager", "description")
+    list_display = ("title", "manager", "client_detail", "description")
     readonly_fields = ("title", "description", "worker")
 
     # filter_horizontal = ("worker", "client")
@@ -65,3 +66,8 @@ class DatePointAdmin(admin.ModelAdmin):
         "description",
         "url",
     )
+
+
+@admin.register(ClientDetail)
+class ClientDetail(admin.ModelAdmin):
+    list_display = ("name", "street", "postal_code", "city", "nip")
