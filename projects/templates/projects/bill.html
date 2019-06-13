@@ -1,0 +1,173 @@
+{% load static %}
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+    <link rel="stylesheet" type="text/css" href="{% static 'projects/bill.css' %}">
+</head>
+
+<body>
+    <p align="center">FAKTURA NR 00000000000000000000</p>
+
+    <table style="width:100%">
+        <col width="120">
+
+        <tr>
+            <td style="text-align: right;">Sprzedawca:</td>
+            <td>APSI-TEAM</td>
+            <td style="text-align: right;">Data wystawienia: {{data|date:"d-m-Y"}}</td>
+        </tr>
+        <tr>
+            <td></td>
+            <td>APSI STREET 13</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td>00-000 WARSZAWA</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td style="text-align: right;">Bank:</td>
+            <td>Bank Polski</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td style="text-align: right;">Nr rachunku:</td>
+            <td>00 0000 0000 0000 0000 0000 0000</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td style="text-align: right;">Nabywca:</td>
+            <td>KLIENT</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td>ULICA</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td>KOD POCZTOWY MIASTO</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td>NIP 0000000000</td>
+            <td></td>
+        </tr>
+    </table>
+
+    <p style="text-align: right;">Data dokonania lub zakończenia dostawy towarów lub wykonania
+        usługi: {{data|date:"d-m-Y"}} </p>
+    <p style="text-align: right;">Data zapłaty: {{data|date:"d-m-Y"}}</p>
+
+
+    <p>Forma zapłaty: Przelew</p>
+
+    =========================================================================================================================
+    <table>
+
+        <tr>
+            <th>Lp.</th>
+            <th>Nazwa towaru / usługi </th>
+            <th>PKWiU</th>
+            <th>Jm.</th>
+            <th>Ilość</th>
+            <th>Cena jedn brutto</th>
+            <th>Wartość opustu</th>
+            <th>Wartość brutto</th>
+            <th>Stawka VAT (%)</th>
+            <th>Kwota VAT</th>
+            <th>Wartość netto</th>
+        </tr>
+        {% for service in services %}
+        <tr>
+            <td>{{ forloop.counter }}.</td>
+            <td style="text-align: center;">{{ service.title }}</td>
+            <td></td>
+            <td></td>
+            <td style="text-align: right;">{{ service.count }}</td>
+            <td style="text-align: right;">{{ service.price }}</td>
+            <td style="text-align: right;">0,00</td>
+            <td style="text-align: right;">{{ service.brutto }}</td>
+            <td>ZW</td>
+            <td style="text-align: right;">0,00</td>
+            <td style="text-align: right;">{{ service.netto }}</td>
+        </tr>
+        {% endfor %}
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td style="text-align: right;">W tym :</td>
+            <td style="text-align: right;"></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td style="text-align: right;">{{ total }}</td>
+            <td>ZW</td>
+            <td style="text-align: right;">0,00</td>
+            <td style="text-align: right;">{{ total }}</td>
+        </tr>
+    </table>
+    =========================================================================================================================
+
+    <br>
+    <br>
+
+
+    <p>Zapłacono: {{ total }} zł</p>
+
+
+    <br>
+    <br>
+    <br>
+
+    <p>Imię, nazwisko i podpis osoby uprawnionej do wystawiania faktury: </p>
+
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+
+    <p>Uwagi:</p>
+
+</body>
+
+</html>

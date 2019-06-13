@@ -16,6 +16,7 @@ from .views import (
     WorkerDatePointListView,
     home,
     DatePointUpdateView,
+    MyPDF,
 )
 
 urlpatterns = [
@@ -134,4 +135,5 @@ urlpatterns = [
         WorkerProjectDetailView.as_view(),
         name="worker-project-detail",
     ),
+    path("bill/<int:project_pk>/", MyPDF.as_view(), name="bill"),
 ]

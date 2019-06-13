@@ -9,4 +9,4 @@ UserAdmin.add_fieldsets = (
 
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
-# admin.site.unregister(Group)
+admin.site.unregister(Group)

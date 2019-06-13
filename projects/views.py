@@ -1,4 +1,5 @@
 import json
+import datetime
 
 from django.contrib import messages
 from django.contrib.auth.mixins import (
@@ -36,6 +37,7 @@ from .mixins import (
 )
 from .models import DatePoint, Project, Task
 from .utils import colors
+from wkhtmltopdf.views import PDFTemplateView
 
 ###############################################################################
 ###############################################################################
@@ -632,3 +634,54 @@ class WorkerDatePointListView(
 
 def home(request):
     return render(request, "projects/home.html")
+
+
+class MyPDF(PDFTemplateView):
+    filename = "xd.pdf"
+    template_name = "projects/bill.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(MyPDF, self).get_context_data(**kwargs)
+
+        price_per_hour = Project.objects.get(
+            id=self.kwargs["project_pk"]
+        ).price_per_hour
+
+        if price_per_hour is None:
+            raise Http404(
+                "Price is not set, please contact the administrator."
+            )
+
+        tasks = Task.objects.filter(project_id=self.kwargs["project_pk"])
+
+        services = []
+        total_hours = 0
+
+        for task in tasks:
+            datepoints = DatePoint.objects.filter(task=task)
+
+            hours = 0
+            for datepoint in datepoints:
+                if datepoint.approved_client and datepoint.approved_manager:
+                    hours += datepoint.worked_time
+                    total_hours += datepoint.worked_time
+
+            service = {
+                "title": task.title,
+                "count": hours,
+                "price": f"{price_per_hour:.2f}".replace(".", ","),
+                "brutto": f"{price_per_hour * hours:.2f}".replace(".", ","),
+                "netto": f"{price_per_hour * hours:.2f}".replace(".", ","),
+            }
+
+            if hours != 0:
+                services.append(service)
+
+        context["services"] = services
+
+        total = 0
+        total = total_hours * price_per_hour
+        context["total"] = f"{total:.2f}".replace(".", ",")
+        context["data"] = datetime.datetime.today()
+
+        return context
