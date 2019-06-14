@@ -47,7 +47,19 @@ class Project(models.Model):
 
     # Returns to project-detail page after creating the project.
     def get_absolute_url(self):
-        return reverse("project-detail", kwargs={"project_pk": self.pk})
+        return reverse("project-list")
+
+
+class ProjectPhase(models.Model):
+
+    title = models.CharField(max_length=100, null=True)
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+
+    def get_absolute_url(self):
+        return reverse(
+            "project-detail-temp", kwargs={"project_pk": self.project.id}
+        )
 
 
 class Task(models.Model):
@@ -55,7 +67,7 @@ class Task(models.Model):
     title = models.CharField(max_length=100)
 
     # ForeignKey to Project.
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    project = models.ForeignKey(ProjectPhase, on_delete=models.CASCADE)
 
     # Description of the projet.
     description = models.TextField(blank=True)
@@ -65,7 +77,9 @@ class Task(models.Model):
 
     # Returns to project-detail page after creating task for the project.
     def get_absolute_url(self):
-        return reverse("task-detail", kwargs={"task_pk": self.pk})
+        return reverse(
+            "projectphase-detail", kwargs={"projectphase_pk": self.project.id}
+        )
 
 
 class DatePoint(models.Model):
@@ -105,7 +119,6 @@ class DatePoint(models.Model):
     # Returns to project-detail page after creating datepoint for the project.
     def get_absolute_url(self):
         return reverse(
-            "worker-project-detail",
-            kwargs={"project_pk": self.task.project.pk},
+            "worker-projectphase-detail",
+            kwargs={"projectphase_pk": self.task.project.pk},
         )
-

@@ -35,7 +35,7 @@ from .mixins import (
     UserCanViewDatePointDetail,
     WorkerCanChangeDatePointDetail,
 )
-from .models import DatePoint, Project, Task
+from .models import DatePoint, Project, Task, ProjectPhase
 from .utils import colors
 from wkhtmltopdf.views import PDFTemplateView
 
@@ -311,6 +311,270 @@ class MyProjectsListView(
 ###############################################################################
 ###############################################################################
 ###############################################################################
+#                            Project Views
+###############################################################################
+###############################################################################
+###############################################################################
+
+
+class ProjectTempDetailView(DetailView):
+    model = Project
+    pk_url_kwarg = "project_pk"
+    template_name = "projects/project_detail_temp.html"
+
+
+class ProjectPhaseUpdateView(UpdateView):
+    model = ProjectPhase
+    pk_url_kwarg = "projectphase_pk"
+
+    fields = ["title"]
+
+
+class ProjectPhaseCreateView(CreateView):
+    model = ProjectPhase
+    fields = ["title"]
+
+    def form_valid(self, form):
+        project = get_object_or_404(Project, id=self.kwargs["project_pk"])
+
+        form.instance.project = project
+
+        return super(ProjectPhaseCreateView, self).form_valid(form)
+
+
+class ProjectPhaseDetailView(PermissionRequiredMixin, FormMixin, DetailView):
+    """
+    TODO: Change this View according to
+    https://docs.djangoproject.com/en/2.2/topics/class-based-views/mixins/#using-formmixin-with-detailview.
+    """
+
+    model = ProjectPhase
+    form_class = QueryDatepointsForm
+    pk_url_kwarg = "projectphase_pk"
+
+    def get_context_data(self, **kwargs):
+        """ Populate context with DatePointCreateForm. """
+
+        calendar_view = False
+        table_view = False
+
+        # Get context.
+        context = super().get_context_data(**kwargs)
+
+        # Get DatePoints that belong to current project.
+        queryset = DatePoint.objects.filter(
+            task__project_id=self.kwargs["projectphase_pk"]
+        )
+
+        try:
+            self.kwargs["calendar_view"]
+        except KeyError:
+            pass
+        else:
+            calendar_view = True
+            context["calendar_view"] = True
+
+        try:
+            self.kwargs["table_view"]
+        except KeyError:
+            pass
+        else:
+            table_view = True
+            context["table_view"] = True
+
+        try:
+            worker = get_object_or_404(User, id=self.kwargs["worker_pk"])
+        except KeyError:
+            pass
+        else:
+            queryset = DatePoint.objects.filter(
+                task__project_id=self.kwargs["projectphase_pk"], worker=worker
+            ).order_by("-worked_date")
+            context["worker_name"] = worker.username
+
+        try:
+            task = get_object_or_404(Task, id=self.kwargs["task_pk"])
+        except KeyError:
+            pass
+        else:
+            context["task_title"] = task.title
+            queryset = DatePoint.objects.filter(task=task).order_by(
+                "-worked_date"
+            )
+
+        try:
+            self.kwargs["all"]
+        except KeyError:
+            pass
+        else:
+            queryset = DatePoint.objects.filter(
+                task__project_id=self.kwargs["projectphase_pk"]
+            ).order_by("-worked_date")
+
+        try:
+            month = self.kwargs["month"]
+            year = self.kwargs["year"]
+        except KeyError:
+            pass
+        else:
+            queryset = DatePoint.objects.filter(
+                task__project_id=self.kwargs["projectphase_pk"],
+                worked_date__month=month,
+                worked_date__year=year,
+            ).order_by("-worked_date")
+
+        if calendar_view:
+            # Assign one color to one task and create dict of it.
+            # tasks_color = dict(zip(tasks, colors))
+            print("------")
+            print(self.request.user.groups.all().exists)
+            print("------")
+
+            if self.request.user.groups.all().exists():
+
+                if self.request.user.groups.all()[0].name == "Worker":
+                    # Create list of dictionaries that is used to populate calendar events.
+                    datepoints = [
+                        {
+                            "title": f"{item.task.title} | {item.worked_time}h",
+                            # "title": item.worker.username,
+                            "start": item.worked_date.strftime("%Y-%m-%d"),
+                            "url": reverse(
+                                "datepoint-detail",
+                                kwargs={"datepoint_pk": item.id},
+                            ),
+                            # "color": tasks_color[item.task.id],
+                        }
+                        for item in queryset
+                    ]
+                elif self.request.user.groups.all()[0].name == "Manager":
+
+                    datepoints = [
+                        {
+                            "title": f"{item.task.title} | {item.worked_time}h",
+                            # "title": item.worker.username,
+                            "start": item.worked_date.strftime("%Y-%m-%d"),
+                            "url": reverse(
+                                "datepoint-detail",
+                                kwargs={"datepoint_pk": item.id},
+                            ),
+                            "color": "green"
+                            if item.approved_manager
+                            else "red",
+                        }
+                        for item in queryset
+                    ]
+
+                elif self.request.user.groups.all()[0].name == "Client":
+
+                    datepoints = [
+                        {
+                            "title": f"{item.task.title} | {item.worked_time}h",
+                            # "title": item.worker.username,
+                            "start": item.worked_date.strftime("%Y-%m-%d"),
+                            "url": reverse(
+                                "datepoint-detail",
+                                kwargs={"datepoint_pk": item.id},
+                            ),
+                            "color": "green"
+                            if item.approved_client
+                            else "red",
+                        }
+                        for item in queryset
+                    ]
+
+            # Create json and add it to context.
+            context["datepoints"] = json.dumps(datepoints)
+        elif table_view:
+
+            context["datepoint_list"] = queryset
+
+            datepoints_pks = [item.pk for item in queryset]
+
+            context["datepoints_pks"] = json.dumps(datepoints_pks)
+
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = self.get_form()
+        if form.is_valid():
+            month = form.cleaned_data["month"]
+            projectphase_pk = kwargs["projectphase_pk"]
+            tmp_url = reverse(
+                "projectphase-date-table",
+                kwargs={
+                    "projectphase_pk": projectphase_pk,
+                    "month": month,
+                    "year": 2019,
+                },
+            )
+            print(tmp_url)
+            return redirect(tmp_url)
+            # return redirect(f"{month}/2019/")
+
+        # if form.is_valid():
+        # print("VALID")
+        # return self.form_valid(form)
+        # else:
+        # print("INVALID")
+        # return self.form_invalid(form)
+
+    # def form_valid(self, form):
+    #     worker = get_object_or_404(User, id=self.request.user.id)
+
+    #     form.instance.worker = worker
+
+    #     form.save()
+    #     messages.success(self.request, "Datepoint succesfully created!")
+
+    #     return super(ProjectDetailView, self).form_valid(form)
+
+    permission_required = "projects.view_project"
+
+
+class WorkerProjectPhaseDetailView(PermissionRequiredMixin, DetailView):
+    model = ProjectPhase
+    form_class = DatePointCreateForm
+    pk_url_kwarg = "projectphase_pk"
+
+    def get_context_data(self, **kwargs):
+        """ Populate fullcalendar with datepoints. """
+
+        # Get context.
+        context = super().get_context_data(**kwargs)
+
+        # Get DatePoints that belong to current worker.
+        queryset = DatePoint.objects.filter(
+            worker=self.request.user.id,
+            task__project_id=self.kwargs["projectphase_pk"],
+        )
+
+        # List of datepoints used to populate fullcallendar.
+        datepoints = [
+            {
+                "title": f"{datepoint.task.title} | {datepoint.worked_time}h",
+                "start": datepoint.worked_date.strftime("%Y-%m-%d"),
+                "url": reverse(
+                    "datepoint-detail", kwargs={"datepoint_pk": datepoint.id}
+                ),
+            }
+            for datepoint in queryset
+        ]
+
+        # Create json and add it to the context.
+        context["datepoints"] = json.dumps(datepoints)
+        context["calendar_view"] = True
+
+        return context
+
+    permission_required = "projects.view_project"
+
+
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
 #                            Task Views
 ###############################################################################
 ###############################################################################
@@ -331,7 +595,9 @@ class TaskCreateView(
     # and saving it.
     def form_valid(self, form):
         # Get project by id.
-        project = get_object_or_404(Project, id=self.kwargs["project_pk"])
+        project = get_object_or_404(
+            ProjectPhase, id=self.kwargs["projectphase_pk"]
+        )
 
         # Append the form with returned project.
         form.instance.project = project
@@ -369,12 +635,7 @@ class TaskDetailView(
     permission_required = "projects.view_task"
 
 
-class TaskUpdateView(
-    PermissionRequiredMixin,
-    UserBelongsToTaskMixin,
-    SuccessMessageMixin,
-    UpdateView,
-):
+class TaskUpdateView(PermissionRequiredMixin, SuccessMessageMixin, UpdateView):
     model = Task
     fields = ["title"]
     pk_url_kwarg = "task_pk"
@@ -399,7 +660,7 @@ class DatePointCreateView(
 ):
     form_class = DatePointCreateForm2
     template_name = "projects/datepoint_form.html"
-    pk_url_kwarg = "project_pk"
+    pk_url_kwarg = "projectphase_pk"
 
     def get_form_kwargs(self):
         kwargs = super(DatePointCreateView, self).get_form_kwargs()
@@ -408,7 +669,7 @@ class DatePointCreateView(
         kwargs["user"] = self.request.user
 
         # Add curent project id to the form.
-        kwargs["project_pk"] = self.kwargs["project_pk"]
+        kwargs["projectphase_pk"] = self.kwargs["projectphase_pk"]
 
         return kwargs
 
@@ -455,9 +716,7 @@ class DatePointCreateView2(
     permission_required = "projects.add_datepoint"
 
 
-class DatePointDetailView(
-    PermissionRequiredMixin, UserCanViewDatePointDetail, DetailView
-):
+class DatePointDetailView(PermissionRequiredMixin, DetailView):
     model = DatePoint
     pk_url_kwarg = "datepoint_pk"
 
@@ -637,21 +896,23 @@ def home(request):
 
 
 class MyPDF(PDFTemplateView):
-    filename = "xd.pdf"
+    filename = "bill.pdf"
     template_name = "projects/bill.html"
 
     def get_context_data(self, **kwargs):
         context = super(MyPDF, self).get_context_data(**kwargs)
 
-        project = Project.objects.get(id=self.kwargs["project_pk"])
-        price_per_hour = project.price_per_hour
+        projectphase = ProjectPhase.objects.get(
+            id=self.kwargs["projectphase_pk"]
+        )
+        price_per_hour = projectphase.project.price_per_hour
 
         client_detail = {
-            "name": project.client_detail.name,
-            "street": project.client_detail.street,
-            "postal_code": project.client_detail.postal_code,
-            "city": project.client_detail.city,
-            "nip": project.client_detail.nip,
+            "name": projectphase.project.client_detail.name,
+            "street": projectphase.project.client_detail.street,
+            "postal_code": projectphase.project.client_detail.postal_code,
+            "city": projectphase.project.client_detail.city,
+            "nip": projectphase.project.client_detail.nip,
         }
 
         context["client_detail"] = client_detail
@@ -661,7 +922,7 @@ class MyPDF(PDFTemplateView):
                 "Price is not set, please contact the administrator."
             )
 
-        tasks = Task.objects.filter(project_id=self.kwargs["project_pk"])
+        tasks = Task.objects.filter(project_id=self.kwargs["projectphase_pk"])
 
         services = []
         total_hours = 0

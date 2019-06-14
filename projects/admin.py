@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.models import User
 
-from .models import DatePoint, Project, Task, ClientDetail
+from .models import DatePoint, Project, Task, ClientDetail, ProjectPhase
 
 
 @admin.register(Project)
@@ -32,6 +32,11 @@ class ProjectAdmin(admin.ModelAdmin):
         if db_field.name == "worker":
             kwargs["queryset"] = User.objects.filter(groups__name="Worker")
         return super().formfield_for_manytomany(db_field, request, **kwargs)
+
+
+@admin.register(ProjectPhase)
+class ProjectPhase(admin.ModelAdmin):
+    pass
 
 
 @admin.register(Task)

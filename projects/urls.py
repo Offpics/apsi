@@ -17,6 +17,11 @@ from .views import (
     home,
     DatePointUpdateView,
     MyPDF,
+    ProjectTempDetailView,
+    ProjectPhaseCreateView,
+    ProjectPhaseDetailView,
+    ProjectPhaseUpdateView,
+    WorkerProjectPhaseDetailView,
 )
 
 urlpatterns = [
@@ -24,6 +29,21 @@ urlpatterns = [
     path("", home, name="project-home"),
     # Projects ListView.
     path("projects/", MyProjectsListView.as_view(), name="project-list"),
+    path(
+        "project/<int:project_pk>/",
+        ProjectTempDetailView.as_view(),
+        name="project-detail-temp",
+    ),
+    path(
+        "project/<int:project_pk>/createphase/",
+        ProjectPhaseCreateView.as_view(),
+        name="projectphase-create",
+    ),
+    path(
+        "projectphase/<int:projectphase_pk>/",
+        ProjectPhaseDetailView.as_view(),
+        name="projectphase-detail",
+    ),
     # Projects DetailView.
     path(
         "projects/<int:project_pk>/",
@@ -31,34 +51,34 @@ urlpatterns = [
         name="project-detail",
     ),
     path(
-        "projects/<int:project_pk>/all/",
-        ProjectDetailView.as_view(),
+        "projectphase/<int:projectphase_pk>/all/",
+        ProjectPhaseDetailView.as_view(),
         {"all": True, "table_view": True},
-        name="project-detail-all",
+        name="projectphase-detail-all",
     ),
     path(
-        "projects/<int:project_pk>/<int:month>/<int:year>/",
-        ProjectDetailView.as_view(),
+        "projectphase/<int:projectphase_pk>/<int:month>/<int:year>/",
+        ProjectPhaseDetailView.as_view(),
         {"table_view": True},
-        name="project-date-table",
+        name="projectphase-date-table",
     ),
     path(
-        "projects/<int:project_pk>/calendar/<int:worker_pk>/",
-        ProjectDetailView.as_view(),
+        "projects/<int:projectphase_pk>/calendar/<int:worker_pk>/",
+        ProjectPhaseDetailView.as_view(),
         {"calendar_view": True},
-        name="worker-project-calendar",
+        name="worker-projectphase-calendar",
     ),
     path(
-        "projects/<int:project_pk>/table/<int:worker_pk>/",
-        ProjectDetailView.as_view(),
+        "projectphase/<int:projectphase_pk>/table/<int:worker_pk>/",
+        ProjectPhaseDetailView.as_view(),
         {"table_view": True},
-        name="worker-project-table",
+        name="worker-projectphase-table",
     ),
     path(
-        "projects/<int:project_pk>/<int:task_pk>/",
-        ProjectDetailView.as_view(),
+        "projectphase/<int:projectphase_pk>/<int:task_pk>/",
+        ProjectPhaseDetailView.as_view(),
         {"table_view": True},
-        name="task-project-table",
+        name="task-projectphase-table",
     ),
     # Project DetailView with approved colors for fullcalendar.
     path(
@@ -74,11 +94,16 @@ urlpatterns = [
         ProjectUpdateView.as_view(),
         name="project-update",
     ),
+    path(
+        "projectphase/<int:projectphase_pk>/update/",
+        ProjectPhaseUpdateView.as_view(),
+        name="projectphase-update",
+    ),
     # Task DetailView.
     path("task/<int:task_pk>/", TaskDetailView.as_view(), name="task-detail"),
     # Task CreateView.
     path(
-        "task/new/<int:project_pk>/",
+        "task/new/<int:projectphase_pk>/",
         TaskCreateView.as_view(),
         name="task-create",
     ),
@@ -90,7 +115,7 @@ urlpatterns = [
     ),
     # DatePoint CreateView.
     path(
-        "datepoint/new/<int:project_pk>/<slug:date>/",
+        "datepoint/new/<int:projectphase_pk>/<slug:date>/",
         DatePointCreateView.as_view(),
         name="datepoint-create",
     ),
@@ -135,5 +160,12 @@ urlpatterns = [
         WorkerProjectDetailView.as_view(),
         name="worker-project-detail",
     ),
-    path("bill/<int:project_pk>/", MyPDF.as_view(), name="bill"),
+    path(
+        "worker/projectphase/<int:projectphase_pk>/",
+        WorkerProjectPhaseDetailView.as_view(),
+        name="worker-projectphase-detail",
+    ),
+    path(
+        "bill/<int:projectphase_pk>/", MyPDF.as_view(), name="bill-for-phase"
+    ),
 ]

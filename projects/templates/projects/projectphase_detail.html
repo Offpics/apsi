@@ -1,0 +1,326 @@
+{% extends "projects/base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block head %}
+
+
+<link href="{% static 'projects/fullcalendar/core/main.css' %}" rel="stylesheet" />
+<link href="{% static 'projects/fullcalendar/daygrid/main.css' %}" rel='stylesheet' />
+
+<script src="{% static 'projects/fullcalendar/core/main.js' %}"></script>
+<script src="{% static 'projects/fullcalendar/daygrid/main.js' %}"></script>
+<script src="{% static 'projects/fullcalendar/interaction/main.js' %}"></script>
+<script src="{% static 'projects/fullcalendar/bootstrap/main.js' %}"></script>
+<script src="{% static 'projects/fullcalendar/timegrid/main.js' %}"></script>
+
+
+
+{% ifequal user.groups.all.0|stringformat:"s" 'Worker' %}
+
+<script>
+    var temp = JSON.parse("{{ datepoints|escapejs }}");
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var calendarEl = document.getElementById('calendar');
+
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            eventLimit: 4,
+            plugins: ['interaction', 'dayGrid', 'bootstrap', 'timeGrid'],
+            dateClick: function (info) {
+                var projectphase_pk = "{{ view.kwargs.projectphase_pk }}"
+                window.location.href = '/datepoint/new/' + projectphase_pk + '/' + info.dateStr + '/';
+            },
+            events: temp,
+        });
+
+        calendar.render();
+    });
+
+</script>
+
+{% else %}
+<script>
+    var temp = JSON.parse("{{ datepoints|escapejs }}");
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var calendarEl = document.getElementById('calendar');
+
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            plugins: ['interaction', 'dayGrid', 'bootstrap', 'timeGrid'],
+            eventLimit: 4,
+            dateClick: function (info) {
+                var projectphase_pk = "{{ view.kwargs.projectphase_pk }}"
+                window.location.href = '/datepoints/' + projectphase_pk + '/' + info.dateStr + '/';
+            },
+            events: temp,
+        });
+
+        calendar.render();
+    });
+
+</script>
+
+{% endifequal %}
+
+
+
+
+
+{% endblock %}
+
+
+
+{% block content2 %}
+
+
+<div class="row">
+
+    <div class="col-4">
+        <div class="card bg-light mb-3">
+            <!-- <div class="card-header">{{ object.title }}</div> -->
+            <div class="card-body">
+                <h5 class="card-title">{{ object.project.title }} | {{ object.title }}</h5>
+                <p class="card-text">Description: {{ object.project.description }}</p>
+
+                {% if object.project.client_detail %}
+                <p class="card-text"> Client name: {{ object.project.client_detail.name }}
+                </p>
+                {% endif %}
+
+
+
+                {% ifnotequal user.groups.all.0|stringformat:"s" 'Worker' %}
+                <strong>Table view for:</strong>
+                <p class="card-text">
+                    {% for task in object.task_set.all %}
+                    <a
+                        href="{% url 'task-projectphase-table' view.kwargs.projectphase_pk task.id %}">{{ task.title }}</a>
+                    {% endfor %}
+                </p>
+                {% endifnotequal %}
+                <p class="card-text">Manager: {{ object.project.manager }}</p>
+                {% ifnotequal user.groups.all.0|stringformat:"s" 'Worker' %}
+                <p class="card-text"><strong>Table view for:</strong>
+                    {% for worker in object.project.worker.all %}
+                    <a
+                        href="{% url 'worker-projectphase-table' view.kwargs.projectphase_pk worker.id %}">{{ worker }}</a>
+                    {% endfor %}
+                </p>
+                <p class="card-text"><strong>Callendar view:</strong>
+                    {% for worker in object.project.worker.all %}
+                    <a
+                        href="{% url 'worker-projectphase-calendar' view.kwargs.projectphase_pk worker.id %}">{{ worker }}</a>
+                    {% endfor %}
+                </p>
+                {% endifnotequal %}
+
+
+                {% ifnotequal user.groups.all.0|stringformat:"s" 'Worker' %}
+
+                <div class="content-section">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-8">
+                                {% crispy form %}
+                            </div>
+                            <div class="col-4">
+                                <button class="btn btn-outline-info" type="submit">List</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div>
+                    <a href="{% url 'projectphase-detail-all' view.kwargs.projectphase_pk %}"
+                        class="btn btn-outline-info">List
+                        all
+                    </a>
+                </div>
+
+                {% endifnotequal %}
+
+
+            </div>
+            <div class="card-footer">
+                <div class="btn-group" role="group">
+                    {% if perms.projects.add_task %}
+                    <a href="{% url 'task-create' object.id %}" class="btn btn-outline-info">New Task</a>
+                    {% endif %}
+
+                    {% if perms.projects.change_project %}
+                    <a href="{% url 'projectphase-update' object.id %}" class="btn btn-outline-info">Update Phase</a>
+                    {% endif %}
+
+
+                    {% ifequal user.groups.all.0|stringformat:"s" 'Worker' %}
+                    <a href="{% url 'worker-projectphase-table' view.kwargs.projectphase_pk user.id %}"
+                        class="btn btn-outline-info">List my work</a>
+                    {% endifequal %}
+
+
+                    {% ifequal user.groups.all.0|stringformat:"s" 'Client' %}
+
+                    <a href="{% url 'bill-for-phase' view.kwargs.projectphase_pk %}"
+                        class="btn btn-outline-info">Generate
+                        Bill</a>
+                    {% endifequal %}
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+
+
+
+    <div class="col-8">
+        {% if calendar_view %}
+        <h1>Callendar view for: {{ worker_name }}</h1>
+        <div id='calendar'></div>
+        {% endif %}
+
+
+        {% if table_view %}
+        {% if task_title %}
+        <h3>Task: {{ task_title }} </h3>
+        {% endif %}
+
+        {% if perms.projects.change_task %}
+        {% if view.kwargs.task_pk %}
+        <p><a href="{% url 'task-update' view.kwargs.task_pk %}">Update Current Task</a></p>
+        {% endif %}
+        {% endif %}
+
+
+
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Worker</th>
+                    <th scope="col">Worked date</th>
+                    <th scope="col">Worked time</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Approved By Manager</th>
+                    {% if object.project.client.exists %}
+                    <th scope="col">Approved By Client</th>
+                    {% endif %}
+                    {% ifnotequal user.groups.all.0|stringformat:"s" 'Worker' %}
+                    <th scope="col">Action</th>
+                    {% endifnotequal %}
+                </tr>
+            </thead>
+            {% for datepoint in datepoint_list %}
+            <tbody>
+                <tr>
+                    <td>{{ datepoint.worker }}</td>
+                    <td>{{ datepoint.worked_date }}</td>
+                    <td>{{ datepoint.worked_time }}</td>
+                    <td>
+                        {% if datepoint.description %}
+                        {{ datepoint.description }}
+                        {% else %}
+                        ---
+                        {% endif %}
+                    </td>
+                    {% if datepoint.approved_manager is False %}
+
+                    <td>
+                        <img src="{% static 'admin/img/icon-no.svg' %}" id="approved_manager{{ datepoint.id }}">
+                    </td>
+                    {% else %}
+                    <td>
+                        <img src="{% static 'admin/img/icon-yes.svg' %}" id="approved_manager{{ datepoint.id }}">
+                    </td>
+                    {% endif %}
+
+                    {% if object.project.client.exists %}
+                    {% if datepoint.approved_client is False %}
+
+                    <td>
+                        <img src="{% static 'admin/img/icon-no.svg' %}" id="approved_client{{ datepoint.id }}">
+                    </td>
+                    {% else %}
+                    <td>
+                        <img src="{% static 'admin/img/icon-yes.svg' %}" id="approved_client{{ datepoint.id }}">
+                    </td>
+                    {% endif %}
+                    {% endif %}
+
+                    {% ifnotequal user.groups.all.0|stringformat:"s" 'Worker' %}
+                    <td>
+                        {% ifequal user.groups.all.0|stringformat:"s" 'Manager' %}
+                        {% if datepoint.approved_manager is False %}
+                        <button class="btn btn-outline-success" id="btn{{ datepoint.id }}">Approve</button>
+                        {% else %}
+                        <button class="btn btn-outline-danger" id="btn{{ datepoint.id }}">Disapprove</button>
+                        {% endif %}
+                        {% endifequal %}
+
+
+                        {% ifequal user.groups.all.0|stringformat:"s" 'Client' %}
+                        {% if datepoint.approved_client is False %}
+                        <button class="btn btn-outline-success" id="btn{{ datepoint.id }}">Approve</button>
+                        {% else %}
+                        <button class="btn btn-outline-danger" id="btn{{ datepoint.id }}">Disapprove</button>
+                        {% endif %}
+                        {% endifequal %}
+                    </td>
+                    {% endifnotequal %}
+
+                </tr>
+            </tbody>
+            {% endfor %}
+        </table>
+        {% endif %}
+
+
+
+
+    </div>
+
+
+</div>
+
+
+
+
+
+
+<script>
+    const datepoints_pks = JSON.parse("{{ datepoints_pks | escapejs }}");
+    const user_group = "{{ user.groups.all.0 }}";
+
+    datepoints_pks.forEach(element => {
+
+        document.querySelector("#btn" + element).addEventListener('click', function () {
+            $.get("/datepoint/" + element + "/approve/", function (data) {
+                if (data == "False") {
+                    document.querySelector("#btn" + element).classList.replace("btn-outline-danger", "btn-outline-success");
+                    document.querySelector("#btn" + element).textContent = "Approve";
+                    if (user_group == "Manager") {
+                        document.querySelector("#approved_manager" + element).src = "{% static 'admin/img/icon-no.svg' %}";
+                    } else if (user_group == "Client") {
+                        document.querySelector("#approved_client" + element).src = "{% static 'admin/img/icon-no.svg' %}";
+                    };
+
+                } else {
+                    document.querySelector("#btn" + element).classList.replace("btn-outline-success", "btn-outline-danger");
+                    document.querySelector("#btn" + element).textContent = "Disapprove";
+                    if (user_group == "Manager") {
+                        document.querySelector("#approved_manager" + element).src = "{% static 'admin/img/icon-yes.svg' %}";
+                    } else if (user_group == "Client") {
+                        document.querySelector("#approved_client" + element).src = "{% static 'admin/img/icon-yes.svg' %}";
+                    };
+                }
+            });
+        });
+    });
+
+    $('label[for="id_worked_time"]').setAttrbute('Time')
+</script>
+
+
+{% endblock content2 %}

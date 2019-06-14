@@ -30,14 +30,6 @@ THINGS = [
             {"name": "date point", "permissions": ["view", "change"]},
         ],
     },
-    {
-        "group_name": "Smrodek5",
-        "models": [
-            {"name": "project", "permissions": ["view"]},
-            {"name": "task", "permissions": ["view"]},
-            {"name": "date point", "permissions": ["view", "change", "add"]},
-        ],
-    },
 ]
 
 

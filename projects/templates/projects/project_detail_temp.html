@@ -1,0 +1,26 @@
+{% extends "projects/base.html" %}
+{% block content2 %}
+
+
+{% if object.projectphase_set.exists %}
+{% for phase in object.projectphase_set.all %}
+
+
+{% ifequal user.groups.all.0|stringformat:"s" 'Worker' %}
+<a href="{% url 'worker-projectphase-detail' phase.id %}">{{ phase.title }}</a>
+{% else %}
+
+<a href="{% url 'projectphase-detail' phase.id %}">{{ phase.title }}</a>
+{% endifequal %}
+{% endfor %}
+{% endif %}
+
+
+
+
+
+{% if perms.projects.add_project %}
+<a href="{% url 'projectphase-create' view.kwargs.project_pk %}">Create New Phase</a>
+{% endif %}
+
+{% endblock content2 %}
