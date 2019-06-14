@@ -16,6 +16,10 @@
 {% endif %}
 
 
+{% if perms.projects.change_project %}
+<a href="{% url 'project-update' view.kwargs.project_pk %}">Update Project</a>
+{% endif %}
+
 
 
 

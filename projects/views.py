@@ -809,6 +809,27 @@ class ManagerApproveDatePointView(
                 return HttpResponse(datepoint.approved_client)
 
 
+class ManagerEndProjectPhase(PermissionRequiredMixin, View):
+
+    permission_required = "projects.change_project"
+
+    def get(self, *args, **kwargs):
+
+        user = self.request.user
+
+        projectphase_pk = kwargs["projectphase_pk"]
+        projectphase = get_object_or_404(ProjectPhase, id=projectphase_pk)
+
+        if projectphase.ongoing is False:
+            raise Http404("Cannot change phase to ongoing.")
+
+        if user.groups.count() > 0:
+            if user.groups.all()[0].name == "Manager":
+                projectphase.ongoing = False
+                projectphase.save()
+                return HttpResponse(f"{projectphase.title} has ended.")
+
+
 class WorkerProjectDetailView(
     PermissionRequiredMixin, UserBelongsToProjectMixin, DetailView
 ):

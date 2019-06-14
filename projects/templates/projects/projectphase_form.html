@@ -10,4 +10,64 @@
         </div>
     </form>
 </div>
+
+
+
+{% if view.kwargs.update_view %}
+{% if object.ongoing %}
+<button id="btnendphase" class="btn btn-danger" style="margin-top: 15em;" data-toggle="modal"
+    data-target="#exampleModal">End
+    phase</button>
+
+{% endif %}
+{% endif %}
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">End {{ object.title }}?</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Do you really want to end {{ object.title }}?
+                <br>
+                You can not undo this action.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-dismiss="modal">No</button>
+                <button id="btnongoing" type="button" class="btn btn-danger">Yes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    const projectphase_pk = "{{ view.kwargs.projectphase_pk }}";
+    const btn = document.querySelector("#btnongoing");
+    console.log(btn);
+
+    console.log('projectphase/' + projectphase_pk + "/endprojectphase/");
+
+    btn.addEventListener('click', function () {
+        $.get('/projectphase/' + projectphase_pk + "/endprojectphase/", function (data) {
+            console.log('xd');
+            alert(data);
+            btn.style.display = "none";
+            document.querySelector("#btnendphase").style.display = "none"
+            $('#exampleModal').modal('hide')
+        });
+    });
+
+
+</script>
+
+
 {% endblock content %}

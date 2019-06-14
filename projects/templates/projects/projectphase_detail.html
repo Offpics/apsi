@@ -81,6 +81,9 @@
             <!-- <div class="card-header">{{ object.title }}</div> -->
             <div class="card-body">
                 <h5 class="card-title">{{ object.project.title }} | {{ object.title }}</h5>
+                {% if not object.ongoing %}
+                The projectphase has ended
+                {% endif %}
                 <p class="card-text">Description: {{ object.project.description }}</p>
 
                 {% if object.project.client_detail %}

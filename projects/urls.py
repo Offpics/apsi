@@ -22,6 +22,7 @@ from .views import (
     ProjectPhaseDetailView,
     ProjectPhaseUpdateView,
     WorkerProjectPhaseDetailView,
+    ManagerEndProjectPhase,
 )
 
 urlpatterns = [
@@ -97,6 +98,7 @@ urlpatterns = [
     path(
         "projectphase/<int:projectphase_pk>/update/",
         ProjectPhaseUpdateView.as_view(),
+        {"update_view": True},
         name="projectphase-update",
     ),
     # Task DetailView.
@@ -167,5 +169,10 @@ urlpatterns = [
     ),
     path(
         "bill/<int:projectphase_pk>/", MyPDF.as_view(), name="bill-for-phase"
+    ),
+    path(
+        "projectphase/<int:projectphase_pk>/endprojectphase/",
+        ManagerEndProjectPhase.as_view(),
+        name="projectphase-end",
     ),
 ]

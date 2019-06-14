@@ -56,10 +56,15 @@ class ProjectPhase(models.Model):
 
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
 
+    ongoing = models.BooleanField(default=True)
+
     def get_absolute_url(self):
         return reverse(
             "project-detail-temp", kwargs={"project_pk": self.project.id}
         )
+
+    def __str__(self):
+        return f"{self.title, self.project.title}"
 
 
 class Task(models.Model):
