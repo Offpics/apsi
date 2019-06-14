@@ -82,7 +82,7 @@
             <div class="card-body">
                 <h5 class="card-title">{{ object.project.title }} | {{ object.title }}</h5>
                 {% if not object.ongoing %}
-                The projectphase has ended
+                <strong class="text-danger card-text">The projectphase has ended</strong>
                 {% endif %}
                 <p class="card-text">Description: {{ object.project.description }}</p>
 
@@ -144,6 +144,11 @@
 
                 {% endifnotequal %}
 
+                {% ifequal user.groups.all.0|stringformat:"s" 'Worker' %}
+                <a href="{% url 'worker-projectphase-table' view.kwargs.projectphase_pk user.id %}"
+                    class="btn btn-outline-info">List my work</a>
+                {% endifequal %}
+
 
             </div>
             <div class="card-footer">
@@ -158,17 +163,18 @@
 
 
                     {% ifequal user.groups.all.0|stringformat:"s" 'Worker' %}
-                    <a href="{% url 'worker-projectphase-table' view.kwargs.projectphase_pk user.id %}"
-                        class="btn btn-outline-info">List my work</a>
+                    <a href="{% url 'projectphase-worker-summary' view.kwargs.projectphase_pk user.id %}"
+                        class="btn btn-outline-info">Summary of my work</a>
                     {% endifequal %}
 
 
-                    {% ifequal user.groups.all.0|stringformat:"s" 'Client' %}
+                    {% ifnotequal user.groups.all.0|stringformat:"s" 'Worker' %}
+                    {% if not object.ongoing %}
 
-                    <a href="{% url 'bill-for-phase' view.kwargs.projectphase_pk %}"
-                        class="btn btn-outline-info">Generate
+                    <a href="{% url 'bill-for-phase' view.kwargs.projectphase_pk %}" class="btn btn-outline-info">Print
                         Bill</a>
-                    {% endifequal %}
+                    {% endif %}
+                    {% endifnotequal %}
                 </div>
 
 
@@ -203,12 +209,15 @@
             <thead>
                 <tr>
                     <th scope="col">Worker</th>
-                    <th scope="col">Worked date</th>
-                    <th scope="col">Worked time</th>
+                    {% if not view.kwargs.task_pk %}
+                    <th scope="col">Task</th>
+                    {% endif %}
+                    <th scope="col">Date</th>
+                    <th scope="col">Hours</th>
                     <th scope="col">Description</th>
-                    <th scope="col">Approved By Manager</th>
+                    <th scope="col">Manager</th>
                     {% if object.project.client.exists %}
-                    <th scope="col">Approved By Client</th>
+                    <th scope="col">Client</th>
                     {% endif %}
                     {% ifnotequal user.groups.all.0|stringformat:"s" 'Worker' %}
                     <th scope="col">Action</th>
@@ -219,7 +228,10 @@
             <tbody>
                 <tr>
                     <td>{{ datepoint.worker }}</td>
-                    <td>{{ datepoint.worked_date }}</td>
+                    {% if not view.kwargs.task_pk %}
+                    <td>{{ datepoint.task }}</td>
+                    {% endif %}
+                    <td>{{ datepoint.worked_date|date:'d-m-Y' }}</td>
                     <td>{{ datepoint.worked_time }}</td>
                     <td>
                         {% if datepoint.description %}
@@ -278,6 +290,27 @@
             {% endfor %}
         </table>
         {% endif %}
+
+
+        {% if worker_summary_view %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Task</th>
+                    <th scope="col">Accepted Hours</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for service in services %}
+                <tr>
+                    <td>{{ service.title }}</td>
+                    <td>{{ service.hours }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
 
 
 

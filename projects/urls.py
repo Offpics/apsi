@@ -81,6 +81,12 @@ urlpatterns = [
         {"table_view": True},
         name="task-projectphase-table",
     ),
+    path(
+        "projectphase/<int:projectphase_pk>/<int:worker_pk>/summary/",
+        ProjectPhaseDetailView.as_view(),
+        {"worker_summary_view": True},
+        name="projectphase-worker-summary",
+    ),
     # Project DetailView with approved colors for fullcalendar.
     path(
         "projects/<int:project_pk>/<str:approved>/",

@@ -36,7 +36,7 @@ from .mixins import (
     WorkerCanChangeDatePointDetail,
 )
 from .models import DatePoint, Project, Task, ProjectPhase
-from .utils import colors
+from .utils import months2
 from wkhtmltopdf.views import PDFTemplateView
 
 ###############################################################################
@@ -246,7 +246,6 @@ class ProjectDetailView(
             )
             print(tmp_url)
             return redirect(tmp_url)
-            # return redirect(f"{month}/2019/")
 
         # if form.is_valid():
         # print("VALID")
@@ -352,11 +351,37 @@ class ProjectPhaseDetailView(PermissionRequiredMixin, FormMixin, DetailView):
     form_class = QueryDatepointsForm
     pk_url_kwarg = "projectphase_pk"
 
+    def get_form_kwargs(self):
+        kwargs = super(ProjectPhaseDetailView, self).get_form_kwargs()
+
+        projectphase = ProjectPhase.objects.get(
+            id=self.kwargs["projectphase_pk"]
+        )
+
+        months = set()
+        years = set()
+
+        dt_start = projectphase.first_datepoint
+
+        dt_end = projectphase.last_datepoint
+
+        for datepoint in months2(
+            dt_start.month, dt_start.year, dt_end.month, dt_end.year
+        ):
+            months.add(datepoint[0])
+            years.add(int(datepoint[1]))
+
+        kwargs["months"] = [(str(item), str(item)) for item in list(months)]
+        kwargs["years"] = [(str(item), str(item)) for item in list(years)]
+
+        return kwargs
+
     def get_context_data(self, **kwargs):
         """ Populate context with DatePointCreateForm. """
 
         calendar_view = False
         table_view = False
+        worker_summary_view = False
 
         # Get context.
         context = super().get_context_data(**kwargs)
@@ -381,6 +406,14 @@ class ProjectPhaseDetailView(PermissionRequiredMixin, FormMixin, DetailView):
         else:
             table_view = True
             context["table_view"] = True
+
+        try:
+            self.kwargs["worker_summary_view"]
+        except KeyError:
+            pass
+        else:
+            worker_summary_view = True
+            context["worker_summary_view"] = True
 
         try:
             worker = get_object_or_404(User, id=self.kwargs["worker_pk"])
@@ -493,6 +526,29 @@ class ProjectPhaseDetailView(PermissionRequiredMixin, FormMixin, DetailView):
 
             context["datepoints_pks"] = json.dumps(datepoints_pks)
 
+        elif worker_summary_view:
+
+            tasks = Task.objects.filter(
+                project_id=self.kwargs["projectphase_pk"]
+            )
+
+            tasks_dict = {}
+
+            for task in tasks:
+                tasks_dict[f"{task.id}"] = 0
+
+            for datepoint in queryset:
+                if datepoint.approved_manager and datepoint.approved_client:
+                    tasks_dict[f"{datepoint.task.id}"] += datepoint.worked_time
+
+            services = []
+            for task in tasks:
+                services.append(
+                    {"title": task.title, "hours": tasks_dict[f"{task.id}"]}
+                )
+
+            context["services"] = services
+
         return context
 
     def post(self, request, *args, **kwargs):
@@ -500,13 +556,14 @@ class ProjectPhaseDetailView(PermissionRequiredMixin, FormMixin, DetailView):
         form = self.get_form()
         if form.is_valid():
             month = form.cleaned_data["month"]
+            year = form.cleaned_data["year"]
             projectphase_pk = kwargs["projectphase_pk"]
             tmp_url = reverse(
                 "projectphase-date-table",
                 kwargs={
                     "projectphase_pk": projectphase_pk,
                     "month": month,
-                    "year": 2019,
+                    "year": year,
                 },
             )
             print(tmp_url)

@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import models
 from django.urls import reverse
+from datetime import datetime
 
 
 class ClientDetail(models.Model):
@@ -58,6 +59,9 @@ class ProjectPhase(models.Model):
 
     ongoing = models.BooleanField(default=True)
 
+    first_datepoint = models.DateField(auto_now=True)
+    last_datepoint = models.DateField(auto_now=True)
+
     def get_absolute_url(self):
         return reverse(
             "project-detail-temp", kwargs={"project_pk": self.project.id}
@@ -76,6 +80,13 @@ class Task(models.Model):
 
     # Description of the projet.
     description = models.TextField(blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.project.ongoing:
+            raise ValueError(
+                f"{self.project.title} has ended. Unable to insert new data."
+            )
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.title}"
@@ -117,6 +128,25 @@ class DatePoint(models.Model):
 
     # Wheter approved by client.
     approved_client = models.BooleanField(default=False)
+
+    def save(self, *args, **kwargs):
+        if not self.task.project.ongoing:
+            raise ValueError(
+                f"{self.task.project.title} has ended. Unable to insert new data."
+            )
+
+        print(self.worked_date)
+        projectphase = self.task.project
+        tmp = datetime.strptime(self.worked_date, "%Y-%m-%d").date()
+        if tmp < projectphase.first_datepoint:
+            projectphase.first_datepoint = tmp
+            projectphase.save(update_fields=["first_datepoint"])
+
+        if tmp > projectphase.last_datepoint:
+            projectphase.last_datepoint = tmp
+            projectphase.save(update_fields=["last_datepoint"])
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Worker: {self.worker}, Task: {self.task}"

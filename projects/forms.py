@@ -79,9 +79,21 @@ class QueryDatepointsForm(forms.Form):
         initial=f"{datetime.now().month}",
         required=True,
     )
+    year = forms.ChoiceField(
+        widget=forms.Select(),
+        choices=[("2019", "2019"), ("2020", "2020")],
+        initial=f"{datetime.now().year}",
+        required=True,
+    )
 
     def __init__(self, *args, **kwargs):
+
+        months = kwargs.pop("months")
+        years = kwargs.pop("years")
         super(QueryDatepointsForm, self).__init__(*args, **kwargs)
+
+        self.fields["month"].choices = months
+        self.fields["year"].choices = years
 
         self.helper = FormHelper()
         self.helper.form_show_labels = False

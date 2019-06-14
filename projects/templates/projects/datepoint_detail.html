@@ -2,8 +2,15 @@
 {% block content %}
 <p>Worker: {{ object.worker }} </p>
 <p>Task: {{ object.task.title }} </p>
-<p>Worked Date: {{ object.worked_date }} </p>
-<p>Worked Time: {{ object.worked_time }} hours</p>
+<p>Title: {{ object.title }} </p>
+{% if object.description %}
+<p>Description: {{ object.description }} </p>
+{% endif %}
+{% if object.url %}
+<p>URL: {{ object.url }} </p>
+{% endif %}
+<p>Date: {{ object.worked_date|date:'d-m-Y' }} </p>
+<p>Hours: {{ object.worked_time }} hours</p>
 <p id="approved_manager">Approved by manager: {{ object.approved_manager }}</p>
 {% if object.task.project.client.exists %}
 <p id="approved_client">Approved by client: {{ object.approved_client }}</p>
