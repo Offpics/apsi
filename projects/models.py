@@ -137,14 +137,15 @@ class DatePoint(models.Model):
 
         print(self.worked_date)
         projectphase = self.task.project
-        tmp = datetime.strptime(self.worked_date, "%Y-%m-%d").date()
-        if tmp < projectphase.first_datepoint:
-            projectphase.first_datepoint = tmp
-            projectphase.save(update_fields=["first_datepoint"])
+        if type(self.worked_date) is str:
+            tmp = datetime.strptime(self.worked_date, "%Y-%m-%d").date()
+            if tmp < projectphase.first_datepoint:
+                projectphase.first_datepoint = tmp
+                projectphase.save(update_fields=["first_datepoint"])
 
-        if tmp > projectphase.last_datepoint:
-            projectphase.last_datepoint = tmp
-            projectphase.save(update_fields=["last_datepoint"])
+            if tmp > projectphase.last_datepoint:
+                projectphase.last_datepoint = tmp
+                projectphase.save(update_fields=["last_datepoint"])
 
         super().save(*args, **kwargs)
 
