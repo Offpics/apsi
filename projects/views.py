@@ -1,23 +1,38 @@
 import datetime
 import json
 
-from django.contrib.auth.mixins import (LoginRequiredMixin,
-                                        PermissionRequiredMixin)
+from django.contrib.auth.mixins import (
+    LoginRequiredMixin,
+    PermissionRequiredMixin,
+)
 from django.contrib.auth.models import User
 from django.contrib.messages.views import SuccessMessageMixin
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.views.generic import (CreateView, DetailView, ListView,
-                                  UpdateView, View)
+from django.views.generic import (
+    CreateView,
+    DetailView,
+    ListView,
+    UpdateView,
+    View,
+)
 from django.views.generic.edit import FormMixin
 from wkhtmltopdf.views import PDFTemplateView
 
-from .forms import (DatePointCreateForm, DatePointCreateForm2,
-                    ProjectCreateForm, QueryDatepointsForm)
-from .mixins import (ManagerCanEditDatepoint, UserBelongsToProjectMixin,
-                     UserBelongsToTaskMixin, UserCanViewDatePointDetail,
-                     WorkerCanChangeDatePointDetail)
+from .forms import (
+    DatePointCreateForm,
+    DatePointCreateForm2,
+    ProjectCreateForm,
+    QueryDatepointsForm,
+)
+from .mixins import (
+    ManagerCanEditDatepoint,
+    UserBelongsToProjectMixin,
+    UserBelongsToTaskMixin,
+    UserCanViewDatePointDetail,
+    WorkerCanChangeDatePointDetail,
+)
 from .models import DatePoint, Project, ProjectPhase, Task
 
 ###############################################################################
@@ -515,20 +530,39 @@ class ProjectPhaseDetailView(PermissionRequiredMixin, FormMixin, DetailView):
                 project_id=self.kwargs["projectphase_pk"]
             )
 
+            client_exists = tasks[0].project.project.client.exists()
+
             tasks_dict = {}
+            total_hours = 0
 
             for task in tasks:
                 tasks_dict[f"{task.id}"] = 0
 
             for datepoint in queryset:
-                if datepoint.approved_manager and datepoint.approved_client:
-                    tasks_dict[f"{datepoint.task.id}"] += datepoint.worked_time
+                if client_exists:
+                    if (
+                        datepoint.approved_manager
+                        and datepoint.approved_client
+                    ):
+                        tasks_dict[
+                            f"{datepoint.task.id}"
+                        ] += datepoint.worked_time
+                else:
+                    if datepoint.approved_manager:
+                        tasks_dict[
+                            f"{datepoint.task.id}"
+                        ] += datepoint.worked_time
+                        total_hours += datepoint.worked_time
 
             services = []
             for task in tasks:
                 services.append(
                     {"title": task.title, "hours": tasks_dict[f"{task.id}"]}
                 )
+
+            if worker.profile.price_per_hour:
+                context["total_hours"] = total_hours
+                context["pay"] = total_hours * worker.profile.price_per_hour
 
             context["services"] = services
 
@@ -1014,3 +1048,9 @@ class MyPDF(PDFTemplateView):
         context["data"] = datetime.datetime.today()
 
         return context
+
+
+class WorkerSummaryView(DetailView):
+    model = User
+    pk_url_kwarg = "worker_pk"
+    template_name = "projects/user_detail.html"

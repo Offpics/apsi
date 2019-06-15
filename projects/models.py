@@ -80,12 +80,12 @@ class ProjectPhase(models.Model):
     def __str__(self):
         return f"{self.title, self.project.title}"
 
-    def save(self, *args, **kwargs):
-        if not self.ongoing:
-            raise ValueError(
-                f"{self.title} has ended. Unable to update/insert new data."
-            )
-        super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     if not self.ongoing:
+    #         raise ValueError(
+    #             f"{self.title} has ended. Unable to update/insert new data."
+    #         )
+    #     super().save(*args, **kwargs)
 
 
 class Task(models.Model):
@@ -98,12 +98,12 @@ class Task(models.Model):
     # Description of the projet.
     description = models.TextField(blank=True)
 
-    # def save(self, *args, **kwargs):
-    #     if not self.project.ongoing:
-    #         raise ValueError(
-    #             f"{self.project.title} has ended. Unable to update/insert new data."
-    #         )
-    #     super().save(*args, **kwargs)
+    def save(self, *args, **kwargs):
+        if not self.project.ongoing:
+            raise ValueError(
+                f"{self.project.title} has ended. Unable to update/insert new data."
+            )
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.title}"

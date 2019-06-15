@@ -23,6 +23,7 @@ from .views import (
     ProjectPhaseUpdateView,
     WorkerProjectPhaseDetailView,
     ManagerEndProjectPhase,
+    WorkerSummaryView,
 )
 
 urlpatterns = [
@@ -180,5 +181,10 @@ urlpatterns = [
         "projectphase/<int:projectphase_pk>/endprojectphase/",
         ManagerEndProjectPhase.as_view(),
         name="projectphase-end",
+    ),
+    path(
+        "worker/<int:worker_pk>/",
+        WorkerSummaryView.as_view(),
+        name="worker-summary",
     ),
 ]

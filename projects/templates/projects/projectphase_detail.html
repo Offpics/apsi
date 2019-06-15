@@ -116,6 +116,12 @@
                         href="{% url 'worker-projectphase-calendar' view.kwargs.projectphase_pk worker.id %}">{{ worker }}</a>
                     {% endfor %}
                 </p>
+                <p class="card-text"><strong>Summary for:</strong>
+                    {% for worker in object.project.worker.all %}
+                    <a
+                        href="{% url 'projectphase-worker-summary' view.kwargs.projectphase_pk worker.id %}">{{ worker }}</a>
+                    {% endfor %}
+                </p>
                 {% endifnotequal %}
 
 
@@ -170,9 +176,11 @@
 
                     {% ifnotequal user.groups.all.0|stringformat:"s" 'Worker' %}
                     {% if not object.ongoing %}
+                    {% if object.project.client.exists %}
 
                     <a href="{% url 'bill-for-phase' view.kwargs.projectphase_pk %}" class="btn btn-outline-info">Print
                         Bill</a>
+                    {% endif %}
                     {% endif %}
                     {% endifnotequal %}
                 </div>
@@ -309,6 +317,11 @@
                 {% endfor %}
             </tbody>
         </table>
+
+        {% if total_hours %}
+        <p>Total hours: {{ total_hours }}</p>
+        <p>Pay: {{ pay }}</p>
+        {% endif %}
         {% endif %}
 
 
