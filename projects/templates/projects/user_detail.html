@@ -1,7 +1,9 @@
 {% extends "projects/base.html" %}
 {% load crispy_forms_tags %}
 {% block content %}
-<!-- <div class="content-section">
+
+
+<div class="content-section">
     <form method="POST">
         {% csrf_token %}
         {{ form|crispy }}
@@ -9,7 +11,33 @@
             <button class="btn btn-outline-info" type="submit">Post</button>
         </div>
     </form>
-</div> -->
+</div>
 
 {{ object }}
+
+{% if worker_summary_view %}
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">Task</th>
+            <th scope="col">Accepted Hours</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for service in services %}
+        <tr>
+            <td>{{ service.title }}</td>
+            <td>{{ service.hours }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if total_hours %}
+<p>Total hours: {{ total_hours }}</p>
+<p>Pay: {{ pay }}</p>
+{% endif %}
+{% endif %}
+
+
 {% endblock content %}

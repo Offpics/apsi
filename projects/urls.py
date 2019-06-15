@@ -187,4 +187,10 @@ urlpatterns = [
         WorkerSummaryView.as_view(),
         name="worker-summary",
     ),
+    path(
+        "worker/<int:worker_pk>/summary/<int:month>/<int:year>/",
+        WorkerSummaryView.as_view(),
+        {"worker_summary_view": True},
+        name="worker-summary-month",
+    ),
 ]

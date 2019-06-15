@@ -25,6 +25,7 @@ from .forms import (
     DatePointCreateForm2,
     ProjectCreateForm,
     QueryDatepointsForm,
+    WorkerMonthForm,
 )
 from .mixins import (
     ManagerCanEditDatepoint,
@@ -547,6 +548,7 @@ class ProjectPhaseDetailView(PermissionRequiredMixin, FormMixin, DetailView):
                         tasks_dict[
                             f"{datepoint.task.id}"
                         ] += datepoint.worked_time
+                        total_hours += datepoint.worked_time
                 else:
                     if datepoint.approved_manager:
                         tasks_dict[
@@ -857,9 +859,7 @@ class DatePointListView(
     permission_required = "projects.view_datepoint"
 
 
-class ManagerApproveDatePointView(
-    PermissionRequiredMixin, ManagerCanEditDatepoint, View
-):
+class ManagerApproveDatePointView(PermissionRequiredMixin, View):
 
     permission_required = "projects.change_datepoint"
 
@@ -1050,7 +1050,105 @@ class MyPDF(PDFTemplateView):
         return context
 
 
-class WorkerSummaryView(DetailView):
+class WorkerSummaryView(FormMixin, DetailView):
     model = User
     pk_url_kwarg = "worker_pk"
+    form_class = WorkerMonthForm
     template_name = "projects/user_detail.html"
+
+    def get_form_kwargs(self):
+        kwargs = super(WorkerSummaryView, self).get_form_kwargs()
+
+        worker = User.objects.get(id=self.kwargs["worker_pk"])
+
+        kwargs["dates"] = worker.profile.get_dates()
+
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+
+        worker_summary_view = False
+
+        context = super().get_context_data(**kwargs)
+
+        try:
+            self.kwargs["worker_summary_view"]
+        except KeyError:
+            pass
+        else:
+            worker = get_object_or_404(User, id=self.kwargs["worker_pk"])
+            month = self.kwargs["month"]
+            year = self.kwargs["year"]
+            queryset = DatePoint.objects.filter(
+                worker=worker, worked_date__month=month, worked_date__year=year
+            ).order_by("-worked_date")
+            worker_summary_view = True
+            context["worker_summary_view"] = True
+
+        if worker_summary_view:
+            projects = Project.objects.filter(worker=worker)
+
+            projects_dict = {}
+            total_hours = 0
+
+            for project in projects:
+                projects_dict[f"{project.id}"] = 0
+
+            for project in projects:
+                for phase in project.projectphase_set.all():
+                    queryset = DatePoint.objects.filter(
+                        task__project=phase,
+                        worker=worker,
+                        worked_date__month=month,
+                        worked_date__year=year,
+                    )
+
+                    for datepoint in queryset:
+                        if datepoint.task.project.project.client.exists():
+                            if (
+                                datepoint.approved_manager
+                                and datepoint.approved_client
+                            ):
+                                projects_dict[
+                                    f"{datepoint.task.project.project.id}"
+                                ] += datepoint.worked_time
+                                total_hours += datepoint.worked_time
+                        else:
+                            if datepoint.approved_manager:
+                                projects_dict[
+                                    f"{datepoint.task.project.project.id}"
+                                ] += datepoint.worked_time
+                                total_hours += datepoint.worked_time
+
+            services = []
+            for project in projects:
+                services.append(
+                    {
+                        "title": project.title,
+                        "hours": projects_dict[f"{project.id}"],
+                    }
+                )
+
+            if worker.profile.price_per_hour:
+                context["total_hours"] = total_hours
+                context["pay"] = total_hours * worker.profile.price_per_hour
+
+            context["services"] = services
+
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = self.get_form()
+        if form.is_valid():
+            dates = form.cleaned_data["dates"]
+            tmp_url = reverse(
+                "worker-summary-month",
+                kwargs={
+                    "worker_pk": self.kwargs["worker_pk"],
+                    "month": dates[5:7],
+                    "year": dates[:4],
+                },
+            )
+            print(tmp_url)
+            return redirect(tmp_url)

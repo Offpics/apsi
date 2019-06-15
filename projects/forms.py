@@ -73,3 +73,19 @@ class QueryDatepointsForm(forms.Form):
 
         self.helper = FormHelper()
         self.helper.form_show_labels = False
+
+
+class WorkerMonthForm(forms.Form):
+    dates = forms.ChoiceField(
+        widget=forms.Select(), initial=f"{datetime.now().month}", required=True
+    )
+
+    def __init__(self, *args, **kwargs):
+
+        dates = kwargs.pop("dates")
+        super(WorkerMonthForm, self).__init__(*args, **kwargs)
+
+        self.fields["dates"].choices = dates
+
+        self.helper = FormHelper()
+        self.helper.form_show_labels = False

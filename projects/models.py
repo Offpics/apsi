@@ -154,10 +154,10 @@ class DatePoint(models.Model):
 
         if type(self.worked_date) is str:
             projectphase = self.task.project
+            worker = self.worker
             dates = projectphase.get_dates()
+            dates_worker = worker.profile.get_dates()
             tmp = self.worked_date[:7]
-
-            print(f"{dates}, {tmp}")
 
             tmp_in_dates = False
             for sublist in dates:
@@ -166,13 +166,20 @@ class DatePoint(models.Model):
                     break
 
             if not tmp_in_dates:
-                print("Appended")
                 dates.append((tmp, tmp))
                 projectphase.dates = json.dumps(dates)
                 projectphase.save(update_fields=["dates"])
 
-            print(dates)
+            tmp_in_dates_worker = False
+            for sublist in dates_worker:
+                if tmp in sublist:
+                    tmp_in_dates_worker = True
+                    break
 
+            if not tmp_in_dates_worker:
+                dates_worker.append((tmp, tmp))
+                worker.profile.dates = json.dumps(dates)
+                worker.profile.save(update_fields=["dates"])
         super().save(*args, **kwargs)
 
     def __str__(self):
