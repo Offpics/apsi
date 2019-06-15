@@ -44,6 +44,8 @@ class Project(models.Model):
         ClientDetail, on_delete=models.SET_NULL, blank=True, null=True
     )
 
+    ongoing = models.BooleanField(default=True)
+
     def __str__(self):
         return f"{self.title}, {self.manager}"
 
@@ -80,12 +82,10 @@ class ProjectPhase(models.Model):
     def __str__(self):
         return f"{self.title, self.project.title}"
 
-    # def save(self, *args, **kwargs):
-    #     if not self.ongoing:
-    #         raise ValueError(
-    #             f"{self.title} has ended. Unable to update/insert new data."
-    #         )
-    #     super().save(*args, **kwargs)
+    def save(self, *args, **kwargs):
+        if not self.ongoing or not self.project.ongoing:
+            raise ValueError(f"Unable to update/insert new data.")
+        super().save(*args, **kwargs)
 
 
 class Task(models.Model):

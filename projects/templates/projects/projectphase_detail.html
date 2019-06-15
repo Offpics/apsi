@@ -80,9 +80,10 @@
         <div class="card bg-light mb-3">
             <!-- <div class="card-header">{{ object.title }}</div> -->
             <div class="card-body">
-                <h5 class="card-title">{{ object.project.title }} | {{ object.title }}</h5>
-                {% if not object.ongoing %}
-                <strong class="text-danger card-text">The projectphase has ended</strong>
+                {% if object.ongoing %}
+                <h5 class="card-title text-success">{{ object.project.title }} | {{ object.title }}</h5>
+                {% else %}
+                <h5 class="card-title text-danger">{{ object.project.title }} | {{ object.title }}</h5>
                 {% endif %}
                 <p class="card-text">Description: {{ object.project.description }}</p>
 
@@ -159,12 +160,14 @@
             </div>
             <div class="card-footer">
                 <div class="btn-group" role="group">
+                    {% if object.ongoing %}
                     {% if perms.projects.add_task %}
                     <a href="{% url 'task-create' object.id %}" class="btn btn-outline-info">New Task</a>
                     {% endif %}
 
                     {% if perms.projects.change_project %}
                     <a href="{% url 'projectphase-update' object.id %}" class="btn btn-outline-info">Update Phase</a>
+                    {% endif %}
                     {% endif %}
 
 
@@ -235,7 +238,7 @@
             {% for datepoint in datepoint_list %}
             <tbody>
                 <tr>
-                    <td>{{ datepoint.worker }}</td>
+                    <td><a href="{% url 'datepoint-detail' datepoint.id %}">{{ datepoint.worker }}</a></td>
                     {% if not view.kwargs.task_pk %}
                     <td>{{ datepoint.task }}</td>
                     {% endif %}

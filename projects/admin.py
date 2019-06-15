@@ -14,8 +14,15 @@ class ProjectAdmin(admin.ModelAdmin):
         "client",
         "price_per_hour",
         "client_detail",
+        "ongoing",
     )
-    list_display = ("title", "manager", "client_detail", "description")
+    list_display = (
+        "title",
+        "ongoing",
+        "manager",
+        "client_detail",
+        "description",
+    )
     readonly_fields = ("title", "description", "worker")
 
     # filter_horizontal = ("worker", "client")

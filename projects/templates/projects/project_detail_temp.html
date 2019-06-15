@@ -7,24 +7,31 @@
 
 
 {% ifequal user.groups.all.0|stringformat:"s" 'Worker' %}
-<a href="{% url 'worker-projectphase-detail' phase.id %}">{{ phase.title }}</a>
+<p>
+    <a href="{% url 'worker-projectphase-detail' phase.id %}">{{ phase.title }}</a>
+</p>
 {% else %}
-
-<a href="{% url 'projectphase-detail' phase.id %}">{{ phase.title }}</a>
+<p>
+    <a href="{% url 'projectphase-detail' phase.id %}">{{ phase.title }}</a>
+</p>
 {% endifequal %}
 {% endfor %}
 {% endif %}
 
 
 {% if perms.projects.change_project %}
-<a href="{% url 'project-update' view.kwargs.project_pk %}">Update Project</a>
+<p>
+    <a href="{% url 'project-update' view.kwargs.project_pk %}">Update Project</a>
+</p>
 {% endif %}
 
 
 
 
 {% if perms.projects.add_project %}
-<a href="{% url 'projectphase-create' view.kwargs.project_pk %}">Create New Phase</a>
+<p>
+    <a href="{% url 'projectphase-create' view.kwargs.project_pk %}">Create New Phase</a>
+</p>
 {% endif %}
 
 {% endblock content2 %}

@@ -19,8 +19,8 @@
     {% for datepoint in datepoints %}
     <tbody>
         <tr>
-            <td>{{ datepoint.worker }}</td>
-            <td>{{ datepoint.worked_date }}</td>
+            <td><a href="{% url 'datepoint-detail' datepoint.id %}">{{ datepoint.worker }}</a></td>
+            <td>{{ datepoint.worked_date|date:"d-m-Y" }}</td>
             <td>{{ datepoint.worked_time }}</td>
             <td>
                 {% if datepoint.description %}

@@ -4,26 +4,28 @@ from .views import (
     DatePointCreateView,
     DatePointDetailView,
     DatePointListView,
+    DatePointUpdateView,
+    ManagerApproveDatePointView,
+    ManagerEndProject,
+    ManagerEndProjectPhase,
     MyProjectsListView,
+    ProjectBill,
     ProjectCreateView,
     ProjectDetailView,
+    ProjectPhaseBill,
+    ProjectPhaseCreateView,
+    ProjectPhaseDetailView,
+    ProjectPhaseUpdateView,
+    ProjectTempDetailView,
     ProjectUpdateView,
     TaskCreateView,
     TaskDetailView,
     TaskUpdateView,
-    ManagerApproveDatePointView,
-    WorkerProjectDetailView,
     WorkerDatePointListView,
-    home,
-    DatePointUpdateView,
-    MyPDF,
-    ProjectTempDetailView,
-    ProjectPhaseCreateView,
-    ProjectPhaseDetailView,
-    ProjectPhaseUpdateView,
+    WorkerProjectDetailView,
     WorkerProjectPhaseDetailView,
-    ManagerEndProjectPhase,
     WorkerSummaryView,
+    home,
 )
 
 urlpatterns = [
@@ -100,6 +102,7 @@ urlpatterns = [
     path(
         "projects/update/<int:project_pk>/",
         ProjectUpdateView.as_view(),
+        {"update_view": True},
         name="project-update",
     ),
     path(
@@ -175,12 +178,24 @@ urlpatterns = [
         name="worker-projectphase-detail",
     ),
     path(
-        "bill/<int:projectphase_pk>/", MyPDF.as_view(), name="bill-for-phase"
+        "bill/projectphase/<int:projectphase_pk>/",
+        ProjectPhaseBill.as_view(),
+        name="bill-for-phase",
+    ),
+    path(
+        "bill/project/<int:project_pk>/",
+        ProjectBill.as_view(),
+        name="bill-for-project",
     ),
     path(
         "projectphase/<int:projectphase_pk>/endprojectphase/",
         ManagerEndProjectPhase.as_view(),
         name="projectphase-end",
+    ),
+    path(
+        "project/<int:project_pk>/end/",
+        ManagerEndProject.as_view(),
+        name="project-end",
     ),
     path(
         "worker/<int:worker_pk>/",

@@ -1,18 +1,56 @@
 {% extends "projects/base.html" %}
-{% block content %}
-
+{% block content2 %}
 
 {% for project in projects %}
-{% ifequal user.groups.all.0|stringformat:"s" 'Worker' %}
-<p>
-    <!-- <a href="{% url 'worker-project-detail' project.pk %}">{{ project }}</a> -->
-    <a href=" {% url 'project-detail-temp' project.pk %}">{{ project }} </a>
-</p>
-{% else %}
-<p>
-    <a href=" {% url 'project-detail-temp' project.pk %}">{{ project }} </a>
-</p>
-{% endifequal %}
+<div class="container">
+
+    <div class="row justify-content-center">
+        <div class="col-6">
+            <div class="card bg-light mb-3">
+                <div class="card-header">
+                    {% if project.ongoing %}
+                    <strong class="text-success">{{ project.title }} </strong>
+                    {% else %}
+                    <strong class="text-danger">{{ project.title }} </strong>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        {% for phase in project.projectphase_set.all %}
+                        {% if phase.ongoing %}
+                        <a class="text-success" href="{% url 'projectphase-detail' phase.id %}">{{ phase.title }}</a>
+                        {% else %}
+                        <a class="text-danger" href="{% url 'projectphase-detail' phase.id %}">{{ phase.title }}</a>
+                        {% endif %}
+                        {% endfor %}
+                    </p>
+                </div>
+                <div class="card-footer">
+
+                    {% if perms.projects.add_project and project.ongoing %}
+                    <a class="btn btn-outline-primary" href="{% url 'projectphase-create' project.id %}">New
+                        Phase</a>
+                    {% endif %}
+                    {% if perms.projects.change_project and project.ongoing %}
+                    <a class="btn btn-outline-primary" href="{% url 'project-update' project.id %}">Update</a>
+                    {% endif %}
+                    {% ifnotequal user.groups.all.0|stringformat:"s" 'Worker' %}
+                    {% if project.client.exists and not project.ongoing %}
+                    <a class="btn btn-outline-primary" href="{% url 'bill-for-project' project.id %}">Bill</a>
+                    {% endif %}
+                    {% endifnotequal %}
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+
+</div>
+
 {% endfor %}
 
-{% endblock content %}
+
+
+{% endblock content2%}

@@ -902,6 +902,31 @@ class ManagerEndProjectPhase(PermissionRequiredMixin, View):
                 return HttpResponse(f"{projectphase.title} has ended.")
 
 
+class ManagerEndProject(PermissionRequiredMixin, View):
+
+    permission_required = "projects.change_project"
+
+    def get(self, *args, **kwargs):
+
+        user = self.request.user
+
+        project_pk = kwargs["project_pk"]
+        project = get_object_or_404(Project, id=project_pk)
+
+        if project.ongoing is False:
+            raise Http404("Cannot change phase to ongoing.")
+
+        if user.groups.count() > 0:
+            if user.groups.all()[0].name == "Manager":
+                for phase in project.projectphase_set.all():
+                    phase.ongoing = False
+                    phase.save()
+
+                project.ongoing = False
+                project.save()
+                return HttpResponse(f"{project.title} has ended.")
+
+
 class WorkerProjectDetailView(
     PermissionRequiredMixin, UserBelongsToProjectMixin, DetailView
 ):
@@ -988,15 +1013,15 @@ def home(request):
     return render(request, "projects/home.html")
 
 
-class MyPDF(PDFTemplateView):
+class ProjectPhaseBill(PDFTemplateView):
     filename = "bill.pdf"
     template_name = "projects/bill.html"
 
     def get_context_data(self, **kwargs):
-        context = super(MyPDF, self).get_context_data(**kwargs)
+        context = super(ProjectPhaseBill, self).get_context_data(**kwargs)
 
-        projectphase = ProjectPhase.objects.get(
-            id=self.kwargs["projectphase_pk"]
+        projectphase = get_object_or_404(
+            ProjectPhase, id=self.kwargs["projectphase_pk"]
         )
         price_per_hour = projectphase.project.price_per_hour
 
@@ -1043,6 +1068,66 @@ class MyPDF(PDFTemplateView):
         context["services"] = services
 
         total = 0
+        total = total_hours * price_per_hour
+        context["total"] = f"{total:.2f}".replace(".", ",")
+        context["data"] = datetime.datetime.today()
+
+        return context
+
+
+class ProjectBill(PDFTemplateView):
+    filename = "bill.pdf"
+    template_name = "projects/bill.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(ProjectBill, self).get_context_data(**kwargs)
+
+        project = get_object_or_404(Project, id=self.kwargs["project_pk"])
+        price_per_hour = project.price_per_hour
+
+        client_detail = {
+            "name": project.client_detail.name,
+            "street": project.client_detail.street,
+            "postal_code": project.client_detail.postal_code,
+            "city": project.client_detail.city,
+            "nip": project.client_detail.nip,
+        }
+
+        context["client_detail"] = client_detail
+
+        if price_per_hour is None:
+            raise Http404(
+                "Price is not set, please contact the administrator."
+            )
+
+        projectphases = project.projectphase_set.all()
+
+        services = []
+        total_hours = 0
+
+        for projectphase in projectphases:
+            queryset = DatePoint.objects.filter(task__project=projectphase)
+
+            hours = 0
+
+            for datepoint in queryset:
+                if datepoint.approved_client and datepoint.approved_manager:
+                    hours += datepoint.worked_time
+                    total_hours += datepoint.worked_time
+
+            service = {
+                "title": projectphase.title,
+                "count": hours,
+                "price": f"{price_per_hour:.2f}".replace(".", ","),
+                "brutto": f"{price_per_hour * hours:.2f}".replace(".", ","),
+                "netto": f"{price_per_hour * hours:.2f}".replace(".", ","),
+            }
+
+            if hours != 0:
+                services.append(service)
+
+        context["services"] = services
+
         total = total_hours * price_per_hour
         context["total"] = f"{total:.2f}".replace(".", ",")
         context["data"] = datetime.datetime.today()
