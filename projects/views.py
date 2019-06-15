@@ -285,6 +285,16 @@ class ProjectPhaseDetailView(
                 worked_date__year=year,
             ).order_by("-worked_date")
 
+        try:
+            self.kwargs["datepoint_list"]
+        except KeyError:
+            pass
+        else:
+            queryset = DatePoint.objects.filter(
+                task__project_id=self.kwargs["projectphase_pk"],
+                worked_date=self.kwargs["date"],
+            )
+
         if calendar_view:
             # Assign one color to one task and create dict of it.
             # tasks_color = dict(zip(tasks, colors))
@@ -846,7 +856,7 @@ class ManagerEndProject(
 
 
 def home(request):
-    return render(request, "projects/home.html")
+    return render(request, "projects/home.html", context={"home_view": True})
 
 
 class ProjectPhaseBill(

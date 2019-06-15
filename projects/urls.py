@@ -147,10 +147,10 @@ urlpatterns = [
     #     WorkerDatePointListView.as_view(),
     #     name="worker-datepoint-list",
     # ),
-    # List of DatePoint within project in given day.
     path(
-        "datepoints/<int:project_pk>/<slug:date>/",
-        DatePointListView.as_view(),
+        "datepoints/<int:projectphase_pk>/<slug:date>/",
+        ProjectPhaseDetailView.as_view(),
+        {"table_view": True, "datepoint_list": True},
         name="datepoint-list",
     ),
     # Approve DatePoint.

@@ -117,12 +117,14 @@
                         href="{% url 'worker-projectphase-calendar' view.kwargs.projectphase_pk worker.id %}">{{ worker }}</a>
                     {% endfor %}
                 </p>
+                {% ifequal user.groups.all.0|stringformat:"s" 'Manager' %}
                 <p class="card-text"><strong>Summary for:</strong>
                     {% for worker in object.project.worker.all %}
                     <a
                         href="{% url 'projectphase-worker-summary' view.kwargs.projectphase_pk worker.id %}">{{ worker }}</a>
                     {% endfor %}
                 </p>
+                {% endifequal %}
                 {% endifnotequal %}
 
 

@@ -40,6 +40,9 @@ class ProjectAdmin(admin.ModelAdmin):
             kwargs["queryset"] = User.objects.filter(groups__name="Worker")
         return super().formfield_for_manytomany(db_field, request, **kwargs)
 
+    def has_add_permission(self, request, obj=None):
+        return False
+
 
 @admin.register(ProjectPhase)
 class ProjectPhase(admin.ModelAdmin):
@@ -47,12 +50,18 @@ class ProjectPhase(admin.ModelAdmin):
     list_display = ("title", "project", "ongoing")
     readonly_fields = ("dates",)
 
+    def has_add_permission(self, request, obj=None):
+        return False
+
 
 @admin.register(Task)
 class TaskAdmin(admin.ModelAdmin):
     fields = ("title", "description", "project")
     readonly_fields = ("title", "description", "project")
     list_display = ("title", "project", "description")
+
+    def has_add_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(DatePoint)
@@ -80,6 +89,9 @@ class DatePointAdmin(admin.ModelAdmin):
         "description",
         "url",
     )
+
+    def has_add_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(ClientDetail)

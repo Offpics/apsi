@@ -170,7 +170,7 @@ class DatePoint(models.Model):
 
             if not tmp_in_dates_worker:
                 dates_worker.append((tmp, tmp))
-                worker.profile.dates = json.dumps(dates)
+                worker.profile.dates = json.dumps(dates_worker)
                 worker.profile.save(update_fields=["dates"])
         super().save(*args, **kwargs)
 
