@@ -1,7 +1,8 @@
+import json
+
 from django.contrib.auth.models import User
 from django.db import models
 from django.urls import reverse
-from datetime import datetime
 
 
 class ClientDetail(models.Model):
@@ -59,8 +60,17 @@ class ProjectPhase(models.Model):
 
     ongoing = models.BooleanField(default=True)
 
+    # Dates in format [("m-Y", "m-Y"), ("m-Y", "m-Y")]
+    dates = models.TextField(default="[]")
+
     first_datepoint = models.DateField(auto_now=True)
     last_datepoint = models.DateField(auto_now=True)
+
+    def set_dates(self, dates):
+        self.dates = json.dumps(dates)
+
+    def get_dates(self):
+        return json.loads(self.dates)
 
     def get_absolute_url(self):
         return reverse(
@@ -135,17 +145,26 @@ class DatePoint(models.Model):
                 f"{self.task.project.title} has ended. Unable to insert new data."
             )
 
-        print(self.worked_date)
-        projectphase = self.task.project
         if type(self.worked_date) is str:
-            tmp = datetime.strptime(self.worked_date, "%Y-%m-%d").date()
-            if tmp < projectphase.first_datepoint:
-                projectphase.first_datepoint = tmp
-                projectphase.save(update_fields=["first_datepoint"])
+            projectphase = self.task.project
+            dates = projectphase.get_dates()
+            tmp = self.worked_date[:7]
 
-            if tmp > projectphase.last_datepoint:
-                projectphase.last_datepoint = tmp
-                projectphase.save(update_fields=["last_datepoint"])
+            print(f"{dates}, {tmp}")
+
+            tmp_in_dates = False
+            for sublist in dates:
+                if tmp in sublist:
+                    tmp_in_dates = True
+                    break
+
+            if not tmp_in_dates:
+                print("Appended")
+                dates.append((tmp, tmp))
+                projectphase.dates = json.dumps(dates)
+                projectphase.save(update_fields=["dates"])
+
+            print(dates)
 
         super().save(*args, **kwargs)
 

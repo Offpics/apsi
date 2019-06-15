@@ -60,40 +60,16 @@ class DatePointCreateForm2(forms.ModelForm):
 
 
 class QueryDatepointsForm(forms.Form):
-    month = forms.ChoiceField(
-        widget=forms.Select(),
-        choices=[
-            ("1", "January"),
-            ("2", "February"),
-            ("3", "March"),
-            ("4", "April"),
-            ("5", "May"),
-            ("6", "June"),
-            ("7", "July"),
-            ("8", "August"),
-            ("9", "September"),
-            ("10", "October"),
-            ("11", "November"),
-            ("12", "December"),
-        ],
-        initial=f"{datetime.now().month}",
-        required=True,
-    )
-    year = forms.ChoiceField(
-        widget=forms.Select(),
-        choices=[("2019", "2019"), ("2020", "2020")],
-        initial=f"{datetime.now().year}",
-        required=True,
+    dates = forms.ChoiceField(
+        widget=forms.Select(), initial=f"{datetime.now().month}", required=True
     )
 
     def __init__(self, *args, **kwargs):
 
-        months = kwargs.pop("months")
-        years = kwargs.pop("years")
+        dates = kwargs.pop("dates")
         super(QueryDatepointsForm, self).__init__(*args, **kwargs)
 
-        self.fields["month"].choices = months
-        self.fields["year"].choices = years
+        self.fields["dates"].choices = dates
 
         self.helper = FormHelper()
         self.helper.form_show_labels = False

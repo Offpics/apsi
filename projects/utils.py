@@ -1,12 +1,3 @@
-def months2(start_month, start_year, end_month, end_year):
-    return (
-        ((m_y % 12) + 1, m_y / 12)
-        for m_y in range(
-            12 * start_year + start_month - 1, 12 * end_year + end_month
-        )
-    )
-
-
 # List of hex colors.
 colors = [
     "#065535",

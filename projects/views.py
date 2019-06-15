@@ -1,43 +1,24 @@
-import json
 import datetime
+import json
 
-from django.contrib import messages
-from django.contrib.auth.mixins import (
-    LoginRequiredMixin,
-    PermissionRequiredMixin,
-)
+from django.contrib.auth.mixins import (LoginRequiredMixin,
+                                        PermissionRequiredMixin)
 from django.contrib.auth.models import User
 from django.contrib.messages.views import SuccessMessageMixin
 from django.http import Http404, HttpResponse
-from django.shortcuts import get_object_or_404, render, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.views.generic import (
-    CreateView,
-    DetailView,
-    ListView,
-    RedirectView,
-    UpdateView,
-    View,
-)
+from django.views.generic import (CreateView, DetailView, ListView,
+                                  UpdateView, View)
 from django.views.generic.edit import FormMixin
-from django.views.generic.detail import SingleObjectMixin
-
-from .forms import (
-    DatePointCreateForm,
-    DatePointCreateForm2,
-    ProjectCreateForm,
-    QueryDatepointsForm,
-)
-from .mixins import (
-    ManagerCanEditDatepoint,
-    UserBelongsToProjectMixin,
-    UserBelongsToTaskMixin,
-    UserCanViewDatePointDetail,
-    WorkerCanChangeDatePointDetail,
-)
-from .models import DatePoint, Project, Task, ProjectPhase
-from .utils import months2
 from wkhtmltopdf.views import PDFTemplateView
+
+from .forms import (DatePointCreateForm, DatePointCreateForm2,
+                    ProjectCreateForm, QueryDatepointsForm)
+from .mixins import (ManagerCanEditDatepoint, UserBelongsToProjectMixin,
+                     UserBelongsToTaskMixin, UserCanViewDatePointDetail,
+                     WorkerCanChangeDatePointDetail)
+from .models import DatePoint, Project, ProjectPhase, Task
 
 ###############################################################################
 ###############################################################################
@@ -358,21 +339,23 @@ class ProjectPhaseDetailView(PermissionRequiredMixin, FormMixin, DetailView):
             id=self.kwargs["projectphase_pk"]
         )
 
-        months = set()
-        years = set()
+        kwargs["dates"] = projectphase.get_dates()
 
-        dt_start = projectphase.first_datepoint
+        # months = set()
+        # years = set()
 
-        dt_end = projectphase.last_datepoint
+        # dt_start = projectphase.first_datepoint
 
-        for datepoint in months2(
-            dt_start.month, dt_start.year, dt_end.month, dt_end.year
-        ):
-            months.add(datepoint[0])
-            years.add(int(datepoint[1]))
+        # dt_end = projectphase.last_datepoint
 
-        kwargs["months"] = [(str(item), str(item)) for item in list(months)]
-        kwargs["years"] = [(str(item), str(item)) for item in list(years)]
+        # for datepoint in months2(
+        #     dt_start.month, dt_start.year, dt_end.month, dt_end.year
+        # ):
+        #     months.add(datepoint[0])
+        #     years.add(int(datepoint[1]))
+
+        # kwargs["months"] = [(str(item), str(item)) for item in list(months)]
+        # kwargs["years"] = [(str(item), str(item)) for item in list(years)]
 
         return kwargs
 
@@ -555,15 +538,16 @@ class ProjectPhaseDetailView(PermissionRequiredMixin, FormMixin, DetailView):
         self.object = self.get_object()
         form = self.get_form()
         if form.is_valid():
-            month = form.cleaned_data["month"]
-            year = form.cleaned_data["year"]
+            dates = form.cleaned_data["dates"]
+            # month = form.cleaned_data["month"]
+            # year = form.cleaned_data["year"]
             projectphase_pk = kwargs["projectphase_pk"]
             tmp_url = reverse(
                 "projectphase-date-table",
                 kwargs={
                     "projectphase_pk": projectphase_pk,
-                    "month": month,
-                    "year": year,
+                    "month": dates[5:7],
+                    "year": dates[:4],
                 },
             )
             print(tmp_url)

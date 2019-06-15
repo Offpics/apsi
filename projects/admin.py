@@ -36,7 +36,7 @@ class ProjectAdmin(admin.ModelAdmin):
 
 @admin.register(ProjectPhase)
 class ProjectPhase(admin.ModelAdmin):
-    readonly_fields = ('first_datepoint', 'last_datepoint')
+    readonly_fields = ("first_datepoint", "last_datepoint", "dates")
 
 
 @admin.register(Task)
