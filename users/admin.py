@@ -11,8 +11,8 @@ UserAdmin.add_fieldsets = (
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ["user", "price_per_hour"]
-    readonly_fields = ["dates"]
+    fields = ("user", "price_per_hour")
+    list_display = ("user", "price_per_hour")
 
 
 admin.site.unregister(User)

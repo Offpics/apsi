@@ -72,198 +72,6 @@ class ProjectCreateView(
     permission_required = "projects.add_project"
 
 
-class ProjectDetailView(
-    PermissionRequiredMixin, FormMixin, UserBelongsToProjectMixin, DetailView
-):
-    """
-    TODO: Change this View according to
-    https://docs.djangoproject.com/en/2.2/topics/class-based-views/mixins/#using-formmixin-with-detailview.
-    """
-
-    model = Project
-    form_class = QueryDatepointsForm
-    pk_url_kwarg = "project_pk"
-
-    def get_context_data(self, **kwargs):
-        """ Populate context with DatePointCreateForm. """
-
-        calendar_view = False
-        table_view = False
-
-        # Get context.
-        context = super().get_context_data(**kwargs)
-
-        # Get DatePoints that belong to current project.
-        queryset = DatePoint.objects.filter(
-            task__project_id=self.kwargs["project_pk"]
-        )
-
-        try:
-            self.kwargs["calendar_view"]
-        except KeyError:
-            pass
-        else:
-            calendar_view = True
-            context["calendar_view"] = True
-
-        try:
-            self.kwargs["table_view"]
-        except KeyError:
-            pass
-        else:
-            table_view = True
-            context["table_view"] = True
-
-        try:
-            worker = get_object_or_404(User, id=self.kwargs["worker_pk"])
-        except KeyError:
-            pass
-        else:
-            queryset = DatePoint.objects.filter(
-                task__project_id=self.kwargs["project_pk"], worker=worker
-            ).order_by("-worked_date")
-            context["worker_name"] = worker.username
-
-        try:
-            task = get_object_or_404(Task, id=self.kwargs["task_pk"])
-        except KeyError:
-            pass
-        else:
-            context["task_title"] = task.title
-            queryset = DatePoint.objects.filter(task=task).order_by(
-                "-worked_date"
-            )
-
-        try:
-            self.kwargs["all"]
-        except KeyError:
-            pass
-        else:
-            queryset = DatePoint.objects.filter(
-                task__project_id=self.kwargs["project_pk"]
-            ).order_by("-worked_date")
-
-        try:
-            month = self.kwargs["month"]
-            year = self.kwargs["year"]
-        except KeyError:
-            pass
-        else:
-            queryset = DatePoint.objects.filter(
-                task__project_id=self.kwargs["project_pk"],
-                worked_date__month=month,
-                worked_date__year=year,
-            ).order_by("-worked_date")
-
-        if calendar_view:
-            # Assign one color to one task and create dict of it.
-            # tasks_color = dict(zip(tasks, colors))
-            print("------")
-            print(self.request.user.groups.all().exists)
-            print("------")
-
-            if self.request.user.groups.all().exists():
-
-                if self.request.user.groups.all()[0].name == "Worker":
-                    # Create list of dictionaries that is used to populate calendar events.
-                    datepoints = [
-                        {
-                            "title": f"{item.task.title} | {item.worked_time}h",
-                            # "title": item.worker.username,
-                            "start": item.worked_date.strftime("%Y-%m-%d"),
-                            "url": reverse(
-                                "datepoint-detail",
-                                kwargs={"datepoint_pk": item.id},
-                            ),
-                            # "color": tasks_color[item.task.id],
-                        }
-                        for item in queryset
-                    ]
-                elif self.request.user.groups.all()[0].name == "Manager":
-
-                    datepoints = [
-                        {
-                            "title": f"{item.task.title} | {item.worked_time}h",
-                            # "title": item.worker.username,
-                            "start": item.worked_date.strftime("%Y-%m-%d"),
-                            "url": reverse(
-                                "datepoint-detail",
-                                kwargs={"datepoint_pk": item.id},
-                            ),
-                            "color": "green"
-                            if item.approved_manager
-                            else "red",
-                        }
-                        for item in queryset
-                    ]
-
-                elif self.request.user.groups.all()[0].name == "Client":
-
-                    datepoints = [
-                        {
-                            "title": f"{item.task.title} | {item.worked_time}h",
-                            # "title": item.worker.username,
-                            "start": item.worked_date.strftime("%Y-%m-%d"),
-                            "url": reverse(
-                                "datepoint-detail",
-                                kwargs={"datepoint_pk": item.id},
-                            ),
-                            "color": "green"
-                            if item.approved_client
-                            else "red",
-                        }
-                        for item in queryset
-                    ]
-
-            # Create json and add it to context.
-            context["datepoints"] = json.dumps(datepoints)
-        elif table_view:
-
-            context["datepoint_list"] = queryset
-
-            datepoints_pks = [item.pk for item in queryset]
-
-            context["datepoints_pks"] = json.dumps(datepoints_pks)
-
-        return context
-
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        form = self.get_form()
-        if form.is_valid():
-            month = form.cleaned_data["month"]
-            project_pk = kwargs["project_pk"]
-            tmp_url = reverse(
-                "project-date-table",
-                kwargs={
-                    "project_pk": project_pk,
-                    "month": month,
-                    "year": 2019,
-                },
-            )
-            print(tmp_url)
-            return redirect(tmp_url)
-
-        # if form.is_valid():
-        # print("VALID")
-        # return self.form_valid(form)
-        # else:
-        # print("INVALID")
-        # return self.form_invalid(form)
-
-    # def form_valid(self, form):
-    #     worker = get_object_or_404(User, id=self.request.user.id)
-
-    #     form.instance.worker = worker
-
-    #     form.save()
-    #     messages.success(self.request, "Datepoint succesfully created!")
-
-    #     return super(ProjectDetailView, self).form_valid(form)
-
-    permission_required = "projects.view_project"
-
-
 class ProjectUpdateView(
     PermissionRequiredMixin,
     UserBelongsToProjectMixin,
@@ -313,7 +121,7 @@ class MyProjectsListView(
 ###############################################################################
 
 
-class ProjectTempDetailView(DetailView):
+class ProjectDetailView(DetailView):
     model = Project
     pk_url_kwarg = "project_pk"
     template_name = "projects/project_detail_temp.html"
@@ -356,22 +164,6 @@ class ProjectPhaseDetailView(PermissionRequiredMixin, FormMixin, DetailView):
         )
 
         kwargs["dates"] = projectphase.get_dates()
-
-        # months = set()
-        # years = set()
-
-        # dt_start = projectphase.first_datepoint
-
-        # dt_end = projectphase.last_datepoint
-
-        # for datepoint in months2(
-        #     dt_start.month, dt_start.year, dt_end.month, dt_end.year
-        # ):
-        #     months.add(datepoint[0])
-        #     years.add(int(datepoint[1]))
-
-        # kwargs["months"] = [(str(item), str(item)) for item in list(months)]
-        # kwargs["years"] = [(str(item), str(item)) for item in list(years)]
 
         return kwargs
 
@@ -531,7 +323,8 @@ class ProjectPhaseDetailView(PermissionRequiredMixin, FormMixin, DetailView):
                 project_id=self.kwargs["projectphase_pk"]
             )
 
-            client_exists = tasks[0].project.project.client.exists()
+            if tasks.exists():
+                client_exists = tasks[0].project.project.client.exists()
 
             tasks_dict = {}
             total_hours = 0
@@ -588,24 +381,6 @@ class ProjectPhaseDetailView(PermissionRequiredMixin, FormMixin, DetailView):
             )
             print(tmp_url)
             return redirect(tmp_url)
-            # return redirect(f"{month}/2019/")
-
-        # if form.is_valid():
-        # print("VALID")
-        # return self.form_valid(form)
-        # else:
-        # print("INVALID")
-        # return self.form_invalid(form)
-
-    # def form_valid(self, form):
-    #     worker = get_object_or_404(User, id=self.request.user.id)
-
-    #     form.instance.worker = worker
-
-    #     form.save()
-    #     messages.success(self.request, "Datepoint succesfully created!")
-
-    #     return super(ProjectDetailView, self).form_valid(form)
 
     permission_required = "projects.view_project"
 
@@ -925,46 +700,6 @@ class ManagerEndProject(PermissionRequiredMixin, View):
                 project.ongoing = False
                 project.save()
                 return HttpResponse(f"{project.title} has ended.")
-
-
-class WorkerProjectDetailView(
-    PermissionRequiredMixin, UserBelongsToProjectMixin, DetailView
-):
-    model = Project
-    form_class = DatePointCreateForm
-    pk_url_kwarg = "project_pk"
-
-    def get_context_data(self, **kwargs):
-        """ Populate fullcalendar with datepoints. """
-
-        # Get context.
-        context = super().get_context_data(**kwargs)
-
-        # Get DatePoints that belong to current worker.
-        queryset = DatePoint.objects.filter(
-            worker=self.request.user.id,
-            task__project_id=self.kwargs["project_pk"],
-        )
-
-        # List of datepoints used to populate fullcallendar.
-        datepoints = [
-            {
-                "title": f"{datepoint.task.title} | {datepoint.worked_time}h",
-                "start": datepoint.worked_date.strftime("%Y-%m-%d"),
-                "url": reverse(
-                    "datepoint-detail", kwargs={"datepoint_pk": datepoint.id}
-                ),
-            }
-            for datepoint in queryset
-        ]
-
-        # Create json and add it to the context.
-        context["datepoints"] = json.dumps(datepoints)
-        context["calendar_view"] = True
-
-        return context
-
-    permission_required = "projects.view_project"
 
 
 class WorkerDatePointListView(

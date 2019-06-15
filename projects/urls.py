@@ -16,13 +16,11 @@ from .views import (
     ProjectPhaseCreateView,
     ProjectPhaseDetailView,
     ProjectPhaseUpdateView,
-    ProjectTempDetailView,
     ProjectUpdateView,
     TaskCreateView,
     TaskDetailView,
     TaskUpdateView,
     WorkerDatePointListView,
-    WorkerProjectDetailView,
     WorkerProjectPhaseDetailView,
     WorkerSummaryView,
     home,
@@ -33,11 +31,6 @@ urlpatterns = [
     path("", home, name="project-home"),
     # Projects ListView.
     path("projects/", MyProjectsListView.as_view(), name="project-list"),
-    path(
-        "project/<int:project_pk>/",
-        ProjectTempDetailView.as_view(),
-        name="project-detail-temp",
-    ),
     path(
         "project/<int:project_pk>/createphase/",
         ProjectPhaseCreateView.as_view(),
@@ -165,12 +158,6 @@ urlpatterns = [
         "datepoint/<int:datepoint_pk>/approve/",
         ManagerApproveDatePointView.as_view(),
         name="datepoint-approve",
-    ),
-    # Worker ProjectDetailView.
-    path(
-        "worker/projects/<int:project_pk>/",
-        WorkerProjectDetailView.as_view(),
-        name="worker-project-detail",
     ),
     path(
         "worker/projectphase/<int:projectphase_pk>/",

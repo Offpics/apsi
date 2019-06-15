@@ -65,9 +65,6 @@ class ProjectPhase(models.Model):
     # Dates in format '[("m-Y", "m-Y"), ("m-Y", "m-Y")]'
     dates = models.TextField(default="[]")
 
-    first_datepoint = models.DateField(auto_now=True)
-    last_datepoint = models.DateField(auto_now=True)
-
     def set_dates(self, dates):
         self.dates = json.dumps(dates)
 
@@ -76,11 +73,11 @@ class ProjectPhase(models.Model):
 
     def get_absolute_url(self):
         return reverse(
-            "project-detail-temp", kwargs={"project_pk": self.project.id}
+            "projectphase-detail", kwargs={"projectphase_pk": self.id}
         )
 
     def __str__(self):
-        return f"{self.title, self.project.title}"
+        return f"{self.title} of {self.project.title}"
 
     def save(self, *args, **kwargs):
         if not self.ongoing or not self.project.ongoing:

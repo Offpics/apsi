@@ -215,7 +215,6 @@
 
 
 
-
         <table class="table">
             <thead>
                 <tr>
@@ -231,7 +230,9 @@
                     <th scope="col">Client</th>
                     {% endif %}
                     {% ifnotequal user.groups.all.0|stringformat:"s" 'Worker' %}
+                    {% if object.ongoing %}
                     <th scope="col">Action</th>
+                    {% endif %}
                     {% endifnotequal %}
                 </tr>
             </thead>
@@ -276,6 +277,7 @@
                     {% endif %}
 
                     {% ifnotequal user.groups.all.0|stringformat:"s" 'Worker' %}
+                    {% if object.ongoing %}
                     <td>
                         {% ifequal user.groups.all.0|stringformat:"s" 'Manager' %}
                         {% if datepoint.approved_manager is False %}
@@ -294,6 +296,7 @@
                         {% endif %}
                         {% endifequal %}
                     </td>
+                    {% endif %}
                     {% endifnotequal %}
 
                 </tr>
