@@ -1,4 +1,5 @@
 import datetime
+from django.contrib.auth.mixins import UserPassesTestMixin
 import json
 
 from django.contrib.auth.mixins import (
@@ -73,6 +74,7 @@ class ProjectCreateView(
 
 
 class ProjectUpdateView(
+    LoginRequiredMixin,
     PermissionRequiredMixin,
     UserBelongsToProjectMixin,
     SuccessMessageMixin,
@@ -100,13 +102,23 @@ class MyProjectsListView(
     def get_queryset(self):
         user = get_object_or_404(User, id=self.request.user.id)
 
-        # TODO: Refactor code below because this is not a proper check.
-        queryset = Project.objects.filter(manager=user)
-        if len(queryset) == 0:
-            queryset = Project.objects.filter(worker=user)
-        if len(queryset) == 0:
-            queryset = Project.objects.filter(client=user)
-        return queryset
+        if user.groups.exists():
+            group_name = user.groups.all()[0].name.lower()
+            if group_name == "worker":
+                queryset = Project.objects.filter(worker=user).order_by(
+                    "-ongoing"
+                )
+            elif group_name == "manager":
+                queryset = Project.objects.filter(manager=user).order_by(
+                    "-ongoing"
+                )
+            elif group_name == "client":
+                queryset = Project.objects.filter(client=user).order_by(
+                    "-ongoing"
+                )
+            return queryset
+        else:
+            raise Http404("Cannot view projects.")
 
     permission_required = "projects.view_project"
 
@@ -121,20 +133,38 @@ class MyProjectsListView(
 ###############################################################################
 
 
-class ProjectDetailView(DetailView):
+class ProjectDetailView(
+    LoginRequiredMixin,
+    PermissionRequiredMixin,
+    UserBelongsToProjectMixin,
+    DetailView,
+):
     model = Project
     pk_url_kwarg = "project_pk"
-    template_name = "projects/project_detail_temp.html"
+
+    permission_required = "projects.view_project"
 
 
-class ProjectPhaseUpdateView(UpdateView):
+class ProjectPhaseUpdateView(
+    LoginRequiredMixin,
+    PermissionRequiredMixin,
+    UserBelongsToProjectMixin,
+    UpdateView,
+):
     model = ProjectPhase
     pk_url_kwarg = "projectphase_pk"
 
     fields = ["title"]
 
+    permission_required = "projects.change_projectphase"
 
-class ProjectPhaseCreateView(CreateView):
+
+class ProjectPhaseCreateView(
+    LoginRequiredMixin,
+    PermissionRequiredMixin,
+    UserBelongsToProjectMixin,
+    CreateView,
+):
     model = ProjectPhase
     fields = ["title"]
 
@@ -145,8 +175,16 @@ class ProjectPhaseCreateView(CreateView):
 
         return super(ProjectPhaseCreateView, self).form_valid(form)
 
+    permission_required = "projects.add_projectphase"
 
-class ProjectPhaseDetailView(PermissionRequiredMixin, FormMixin, DetailView):
+
+class ProjectPhaseDetailView(
+    LoginRequiredMixin,
+    PermissionRequiredMixin,
+    UserBelongsToProjectMixin,
+    FormMixin,
+    DetailView,
+):
     """
     TODO: Change this View according to
     https://docs.djangoproject.com/en/2.2/topics/class-based-views/mixins/#using-formmixin-with-detailview.
@@ -382,13 +420,24 @@ class ProjectPhaseDetailView(PermissionRequiredMixin, FormMixin, DetailView):
             print(tmp_url)
             return redirect(tmp_url)
 
-    permission_required = "projects.view_project"
+    permission_required = "projects.view_projectphase"
 
 
-class WorkerProjectPhaseDetailView(PermissionRequiredMixin, DetailView):
+class WorkerProjectPhaseDetailView(
+    LoginRequiredMixin,
+    PermissionRequiredMixin,
+    UserBelongsToProjectMixin,
+    DetailView,
+):
     model = ProjectPhase
     form_class = DatePointCreateForm
     pk_url_kwarg = "projectphase_pk"
+
+    def test_func(self):
+        if self.request.user.groups.filter(name="Worker").exists():
+            return super(WorkerProjectPhaseDetailView, self).test_func()
+        else:
+            return False
 
     def get_context_data(self, **kwargs):
         """ Populate fullcalendar with datepoints. """
@@ -420,7 +469,7 @@ class WorkerProjectPhaseDetailView(PermissionRequiredMixin, DetailView):
 
         return context
 
-    permission_required = "projects.view_project"
+    permission_required = "projects.view_projectphase"
 
 
 ###############################################################################
@@ -436,6 +485,7 @@ class WorkerProjectPhaseDetailView(PermissionRequiredMixin, DetailView):
 class TaskCreateView(
     LoginRequiredMixin,
     PermissionRequiredMixin,
+    UserBelongsToProjectMixin,
     SuccessMessageMixin,
     CreateView,
 ):
@@ -459,32 +509,38 @@ class TaskCreateView(
     permission_required = "projects.add_task"
 
 
-class TaskDetailView(
-    PermissionRequiredMixin, UserBelongsToTaskMixin, DetailView
+# class TaskDetailView(
+#     PermissionRequiredMixin, UserBelongsToTaskMixin, DetailView
+# ):
+#     model = Task
+#     pk_url_kwarg = "task_pk"
+
+#     def get_context_data(self, **kwargs):
+#         # Call the base implementation first to get a context.
+#         context = super().get_context_data(**kwargs)
+
+#         # Add in a QuerySet of all the datepoints.
+#         datepoint_list = DatePoint.objects.filter(
+#             task__id=self.kwargs["task_pk"]
+#         )
+#         context["datepoint_list"] = datepoint_list
+
+#         datepoints_pks = [item.pk for item in datepoint_list]
+
+#         context["datepoints_pks"] = datepoints_pks
+
+#         return context
+
+#     permission_required = "projects.view_task"
+
+
+class TaskUpdateView(
+    LoginRequiredMixin,
+    PermissionRequiredMixin,
+    UserBelongsToTaskMixin,
+    SuccessMessageMixin,
+    UpdateView,
 ):
-    model = Task
-    pk_url_kwarg = "task_pk"
-
-    def get_context_data(self, **kwargs):
-        # Call the base implementation first to get a context.
-        context = super().get_context_data(**kwargs)
-
-        # Add in a QuerySet of all the datepoints.
-        datepoint_list = DatePoint.objects.filter(
-            task__id=self.kwargs["task_pk"]
-        )
-        context["datepoint_list"] = datepoint_list
-
-        datepoints_pks = [item.pk for item in datepoint_list]
-
-        context["datepoints_pks"] = datepoints_pks
-
-        return context
-
-    permission_required = "projects.view_task"
-
-
-class TaskUpdateView(PermissionRequiredMixin, SuccessMessageMixin, UpdateView):
     model = Task
     fields = ["title"]
     pk_url_kwarg = "task_pk"
@@ -505,7 +561,11 @@ class TaskUpdateView(PermissionRequiredMixin, SuccessMessageMixin, UpdateView):
 
 
 class DatePointCreateView(
-    PermissionRequiredMixin, SuccessMessageMixin, CreateView
+    LoginRequiredMixin,
+    PermissionRequiredMixin,
+    UserBelongsToProjectMixin,
+    SuccessMessageMixin,
+    CreateView,
 ):
     form_class = DatePointCreateForm2
     template_name = "projects/datepoint_form.html"
@@ -534,46 +594,63 @@ class DatePointCreateView(
     permission_required = "projects.add_datepoint"
 
 
-class DatePointCreateView2(
-    PermissionRequiredMixin, SuccessMessageMixin, CreateView
+# class DatePointCreateView2(
+#     PermissionRequiredMixin, SuccessMessageMixin, CreateView
+# ):
+#     form_class = DatePointCreateForm2
+#     template_name = "projects/datepoint_form.html"
+#     pk_url_kwarg = "task_pk"
+
+#     def get_form_kwargs(self):
+#         kwargs = super(DatePointCreateView, self).get_form_kwargs()
+
+#         # Add current user to the form.
+#         kwargs["user"] = self.request.user
+
+#         # Add curent project id to the form.
+#         kwargs["task_pk"] = self.kwargs["task_pk"]
+
+#         return kwargs
+
+#     def form_valid(self, form):
+#         task = get_object_or_404(Task, id=self.kwargs["task_pk"])
+#         form.instance.task = task
+
+#         form.instance.worker = self.request.user
+
+#         return super(DatePointCreateView, self).form_valid(form)
+
+#     success_message = "DatePoint succesfully created!"
+
+#     permission_required = "projects.add_datepoint"
+
+
+class DatePointDetailView(
+    LoginRequiredMixin,
+    PermissionRequiredMixin,
+    UserBelongsToProjectMixin,
+    DetailView,
 ):
-    form_class = DatePointCreateForm2
-    template_name = "projects/datepoint_form.html"
-    pk_url_kwarg = "task_pk"
-
-    def get_form_kwargs(self):
-        kwargs = super(DatePointCreateView, self).get_form_kwargs()
-
-        # Add current user to the form.
-        kwargs["user"] = self.request.user
-
-        # Add curent project id to the form.
-        kwargs["task_pk"] = self.kwargs["task_pk"]
-
-        return kwargs
-
-    def form_valid(self, form):
-        task = get_object_or_404(Task, id=self.kwargs["task_pk"])
-        form.instance.task = task
-
-        form.instance.worker = self.request.user
-
-        return super(DatePointCreateView, self).form_valid(form)
-
-    success_message = "DatePoint succesfully created!"
-
-    permission_required = "projects.add_datepoint"
-
-
-class DatePointDetailView(PermissionRequiredMixin, DetailView):
     model = DatePoint
     pk_url_kwarg = "datepoint_pk"
 
     permission_required = "projects.view_datepoint"
 
+    def test_func(self):
+        # If current user is worker check wheter datepoints is his.
+        if self.request.user.groups.filter(name="Worker").exists():
+            return DatePoint.objects.filter(
+                worker=self.request.user, id=self.kwargs["datepoint_pk"]
+            ).exists()
+        else:
+            return super(DatePointDetailView, self).test_func()
+
 
 class DatePointUpdateView(
-    PermissionRequiredMixin, WorkerCanChangeDatePointDetail, UpdateView
+    LoginRequiredMixin,
+    PermissionRequiredMixin,
+    WorkerCanChangeDatePointDetail,
+    UpdateView,
 ):
 
     model = DatePoint
@@ -599,7 +676,10 @@ class DatePointUpdateView(
 
 
 class DatePointListView(
-    PermissionRequiredMixin, UserBelongsToProjectMixin, ListView
+    LoginRequiredMixin,
+    PermissionRequiredMixin,
+    UserBelongsToProjectMixin,
+    ListView,
 ):
     model = DatePoint
 
@@ -634,7 +714,12 @@ class DatePointListView(
     permission_required = "projects.view_datepoint"
 
 
-class ManagerApproveDatePointView(PermissionRequiredMixin, View):
+class ApproveDatePointView(
+    LoginRequiredMixin,
+    PermissionRequiredMixin,
+    UserBelongsToProjectMixin,
+    View,
+):
 
     permission_required = "projects.change_datepoint"
 
@@ -655,10 +740,17 @@ class ManagerApproveDatePointView(PermissionRequiredMixin, View):
                 datepoint.save()
                 return HttpResponse(datepoint.approved_client)
 
+        return HttpResponse(status=403)
 
-class ManagerEndProjectPhase(PermissionRequiredMixin, View):
 
-    permission_required = "projects.change_project"
+class ManagerEndProjectPhase(
+    LoginRequiredMixin,
+    PermissionRequiredMixin,
+    UserBelongsToProjectMixin,
+    View,
+):
+
+    permission_required = "projects.change_projectphase"
 
     def get(self, *args, **kwargs):
 
@@ -670,14 +762,20 @@ class ManagerEndProjectPhase(PermissionRequiredMixin, View):
         if projectphase.ongoing is False:
             raise Http404("Cannot change phase to ongoing.")
 
-        if user.groups.count() > 0:
+        if user.groups.exists():
             if user.groups.all()[0].name == "Manager":
                 projectphase.ongoing = False
                 projectphase.save()
                 return HttpResponse(f"{projectphase.title} has ended.")
+        return HttpResponse(status=403)
 
 
-class ManagerEndProject(PermissionRequiredMixin, View):
+class ManagerEndProject(
+    LoginRequiredMixin,
+    PermissionRequiredMixin,
+    UserBelongsToProjectMixin,
+    View,
+):
 
     permission_required = "projects.change_project"
 
@@ -702,55 +800,72 @@ class ManagerEndProject(PermissionRequiredMixin, View):
                 return HttpResponse(f"{project.title} has ended.")
 
 
-class WorkerDatePointListView(
-    PermissionRequiredMixin, UserBelongsToProjectMixin, ListView
-):
-    model = DatePoint
+# class WorkerDatePointListView(
+#     LoginRequiredMixin,
+#     PermissionRequiredMixin,
+#     UserBelongsToProjectMixin,
+#     ListView,
+# ):
+#     model = DatePoint
 
-    context_object_name = "datepoints"
+#     context_object_name = "datepoints"
 
-    ordering = ["-worked_date"]
+#     ordering = ["-worked_date"]
 
-    def get_queryset(self):
+#     def get_queryset(self):
 
-        worker = get_object_or_404(User, id=self.kwargs["worker_pk"])
+#         worker = get_object_or_404(User, id=self.kwargs["worker_pk"])
 
-        # Get new queryset
-        queryset = DatePoint.objects.filter(
-            task__project_id=self.kwargs["project_pk"], worker=worker
-        ).order_by("worked_date")
+#         # Get new queryset
+#         queryset = DatePoint.objects.filter(
+#             task__project_id=self.kwargs["project_pk"], worker=worker
+#         ).order_by("worked_date")
 
-        return queryset
+#         return queryset
 
-    def get_context_data(self, **kwargs):
-        # TODO: This functions is probably useless because ListView
-        # should already provide this data to the template.
+#     def get_context_data(self, **kwargs):
+#         # TODO: This functions is probably useless because ListView
+#         # should already provide this data to the template.
 
-        # Get context.
-        context = super().get_context_data(**kwargs)
+#         # Get context.
+#         context = super().get_context_data(**kwargs)
 
-        worker = get_object_or_404(User, id=self.kwargs["worker_pk"])
+#         worker = get_object_or_404(User, id=self.kwargs["worker_pk"])
 
-        queryset = DatePoint.objects.filter(
-            task__project_id=self.kwargs["project_pk"], worker=worker
-        ).order_by("worked_date")
+#         queryset = DatePoint.objects.filter(
+#             task__project_id=self.kwargs["project_pk"], worker=worker
+#         ).order_by("worked_date")
 
-        datepoints_pks = [item.pk for item in queryset]
+#         datepoints_pks = [item.pk for item in queryset]
 
-        context["datepoints_pks"] = json.dumps(datepoints_pks)
+#         context["datepoints_pks"] = json.dumps(datepoints_pks)
 
-        return context
+#         return context
 
-    permission_required = "projects.view_datepoint"
+#     permission_required = "projects.view_datepoint"
 
 
 def home(request):
     return render(request, "projects/home.html")
 
 
-class ProjectPhaseBill(PDFTemplateView):
+class ProjectPhaseBill(
+    LoginRequiredMixin,
+    PermissionRequiredMixin,
+    UserBelongsToProjectMixin,
+    PDFTemplateView,
+):
+    permission_required = "projects.view_projectphase"
     filename = "bill.pdf"
     template_name = "projects/bill.html"
+
+    def test_func(self):
+        if self.request.user.groups.filter(
+            name="Manager"
+        ) or self.request.user.groups.filter(name="Client"):
+            return super(ProjectPhaseBill, self).test_func()
+        else:
+            return False
 
     def get_context_data(self, **kwargs):
         context = super(ProjectPhaseBill, self).get_context_data(**kwargs)
@@ -810,9 +925,23 @@ class ProjectPhaseBill(PDFTemplateView):
         return context
 
 
-class ProjectBill(PDFTemplateView):
+class ProjectBill(
+    LoginRequiredMixin,
+    PermissionRequiredMixin,
+    UserBelongsToProjectMixin,
+    PDFTemplateView,
+):
+    permission_required = "projects.view_projectphase"
     filename = "bill.pdf"
     template_name = "projects/bill.html"
+
+    def test_func(self):
+        if self.request.user.groups.filter(
+            name="Manager"
+        ) or self.request.user.groups.filter(name="Client"):
+            return super(ProjectBill, self).test_func()
+        else:
+            return False
 
     def get_context_data(self, **kwargs):
         context = super(ProjectBill, self).get_context_data(**kwargs)
@@ -870,11 +999,18 @@ class ProjectBill(PDFTemplateView):
         return context
 
 
-class WorkerSummaryView(FormMixin, DetailView):
+class WorkerSummaryView(
+    LoginRequiredMixin, UserPassesTestMixin, FormMixin, DetailView
+):
     model = User
     pk_url_kwarg = "worker_pk"
     form_class = WorkerMonthForm
     template_name = "projects/user_detail.html"
+
+    def test_func(self):
+        return self.request.user == User.objects.get(
+            id=self.kwargs["worker_pk"]
+        )
 
     def get_form_kwargs(self):
         kwargs = super(WorkerSummaryView, self).get_form_kwargs()

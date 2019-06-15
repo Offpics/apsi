@@ -1,6 +1,6 @@
 from django.contrib.auth.mixins import UserPassesTestMixin
 
-from .models import Project, Task, DatePoint
+from .models import Project, Task, DatePoint, ProjectPhase
 
 
 class UserBelongsToProjectMixin(UserPassesTestMixin):
@@ -8,22 +8,88 @@ class UserBelongsToProjectMixin(UserPassesTestMixin):
 
     def test_func(self):
         user = self.request.user
-        project_pk = self.kwargs["project_pk"]
-        return self.check_user(user, project_pk)
+        try:
+            project_pk = self.kwargs["project_pk"]
+        except KeyError:
+            pass
+        else:
+            return self.check_user_project(user, project_pk)
 
-    def check_user(self, user, project_pk):
-        if user.groups.count() > 0:
+        try:
+            projectphase_pk = self.kwargs["projectphase_pk"]
+        except KeyError:
+            pass
+        else:
+            return self.check_user_projectphase(user, projectphase_pk)
+
+        try:
+            datepoint_pk = self.kwargs["datepoint_pk"]
+        except KeyError:
+            pass
+        else:
+            return self.check_user_datepoint(user, datepoint_pk)
+
+        return False
+
+    def check_user_datepoint(self, user, datepoint_pk):
+        if user.groups.exists():
+            if user.groups.all()[0].name == "Worker":
+                queryset = DatePoint.objects.filter(
+                    id=datepoint_pk, task__project__project__worker=user
+                )
+                if queryset.exists():
+                    return True
+            elif user.groups.all()[0].name == "Manager":
+                queryset = DatePoint.objects.filter(
+                    id=datepoint_pk, task__project__project__manager=user
+                )
+                if queryset.exists():
+                    return True
+            elif user.groups.all()[0].name == "Client":
+                queryset = DatePoint.objects.filter(
+                    id=datepoint_pk, task__project__project__client=user
+                )
+                if queryset.exists():
+                    return True
+        else:
+            return False
+
+    def check_user_projectphase(self, user, projectphase_pk):
+        if user.groups.exists():
+            if user.groups.all()[0].name == "Worker":
+                queryset = ProjectPhase.objects.filter(
+                    id=projectphase_pk, project__worker=user
+                )
+                if queryset.exists():
+                    return True
+            elif user.groups.all()[0].name == "Manager":
+                queryset = ProjectPhase.objects.filter(
+                    id=projectphase_pk, project__manager=user
+                )
+                if queryset.exists():
+                    return True
+            elif user.groups.all()[0].name == "Client":
+                queryset = ProjectPhase.objects.filter(
+                    id=projectphase_pk, project__client=user
+                )
+                if queryset.exists():
+                    return True
+        else:
+            return False
+
+    def check_user_project(self, user, project_pk):
+        if user.groups.exists():
             if user.groups.all()[0].name == "Worker":
                 queryset = Project.objects.filter(id=project_pk, worker=user)
-                if queryset.count() > 0:
+                if queryset.exists():
                     return True
             elif user.groups.all()[0].name == "Manager":
                 queryset = Project.objects.filter(id=project_pk, manager=user)
-                if queryset.count() > 0:
+                if queryset.exists():
                     return True
             elif user.groups.all()[0].name == "Client":
                 queryset = Project.objects.filter(id=project_pk, client=user)
-                if queryset.count() > 0:
+                if queryset.exists():
                     return True
         else:
             return False
@@ -35,24 +101,24 @@ class UserBelongsToTaskMixin(UserPassesTestMixin):
     def test_func(self):
         user = self.request.user
         task_pk = self.kwargs["task_pk"]
-        if user.groups.count() > 0:
+        if user.groups.exists():
             if user.groups.all()[0].name == "Worker":
                 queryset = Task.objects.filter(
-                    id=task_pk, project__worker=user
+                    id=task_pk, project__project__worker=user
                 )
-                if queryset.count() > 0:
+                if queryset.exists():
                     return True
             elif user.groups.all()[0].name == "Manager":
                 queryset = Task.objects.filter(
-                    id=task_pk, project__manager=user
+                    id=task_pk, project__project__manager=user
                 )
-                if queryset.count() > 0:
+                if queryset.exists():
                     return True
             elif user.groups.all()[0].name == "Client":
                 queryset = Task.objects.filter(
-                    id=task_pk, project__client=user
+                    id=task_pk, project__project__client=user
                 )
-                if queryset.count() > 0:
+                if queryset.exists():
                     return True
         else:
             return False
@@ -67,17 +133,17 @@ class ManagerCanEditDatepoint(UserPassesTestMixin):
         project_pk = DatePoint.objects.filter(id=datepoint_pk)[
             0
         ].task.project.id
-        return self.check_user(user, project_pk)
+        return self.check_user_project(user, project_pk)
 
-    def check_user(self, user, project_pk):
-        if user.groups.count() > 0:
+    def check_user_project(self, user, project_pk):
+        if user.groups.exists():
             if user.groups.all()[0].name == "Manager":
                 queryset = Project.objects.filter(id=project_pk, manager=user)
-                if queryset.count() > 0:
+                if queryset.exists():
                     return True
             if user.groups.all()[0].name == "Client":
                 queryset = Project.objects.filter(id=project_pk, client=user)
-                if queryset.count() > 0:
+                if queryset.exists():
                     return True
         else:
             return False
@@ -99,15 +165,10 @@ class UserCanViewDatePointDetail(
 
         user = self.request.user
 
-        return super().check_user(user, project_pk)
+        return super().check_user_project(user, project_pk)
 
 
 class WorkerCanChangeDatePointDetail(UserPassesTestMixin):
-    """ Check wheter user can view the DatePoint.
-    Get project id that datepoint relates to and
-    checks wheter user belongs to this project id.
-    """
-
     def test_func(self):
         datepoint_pk = self.kwargs["datepoint_pk"]
         user = self.request.user

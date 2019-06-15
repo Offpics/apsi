@@ -79,11 +79,6 @@ class ProjectPhase(models.Model):
     def __str__(self):
         return f"{self.title} of {self.project.title}"
 
-    def save(self, *args, **kwargs):
-        if not self.ongoing or not self.project.ongoing:
-            raise ValueError(f"Unable to update/insert new data.")
-        super().save(*args, **kwargs)
-
 
 class Task(models.Model):
     # Title of the task.

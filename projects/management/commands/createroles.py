@@ -10,6 +10,10 @@ THINGS = [
         "group_name": "Manager",
         "models": [
             {"name": "project", "permissions": ["view", "change", "add"]},
+            {
+                "name": "project phase",
+                "permissions": ["view", "change", "add"],
+            },
             {"name": "task", "permissions": ["add", "change", "view"]},
             {"name": "date point", "permissions": ["change", "view"]},
         ],
@@ -18,6 +22,7 @@ THINGS = [
         "group_name": "Worker",
         "models": [
             {"name": "project", "permissions": ["view"]},
+            {"name": "project phase", "permissions": ["view"]},
             {"name": "task", "permissions": ["view"]},
             {"name": "date point", "permissions": ["view", "add", "change"]},
         ],
@@ -26,6 +31,7 @@ THINGS = [
         "group_name": "Client",
         "models": [
             {"name": "project", "permissions": ["view"]},
+            {"name": "project phase", "permissions": ["view"]},
             {"name": "task", "permissions": ["view"]},
             {"name": "date point", "permissions": ["view", "change"]},
         ],

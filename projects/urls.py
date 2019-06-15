@@ -5,7 +5,7 @@ from .views import (
     DatePointDetailView,
     DatePointListView,
     DatePointUpdateView,
-    ManagerApproveDatePointView,
+    ApproveDatePointView,
     ManagerEndProject,
     ManagerEndProjectPhase,
     MyProjectsListView,
@@ -18,9 +18,9 @@ from .views import (
     ProjectPhaseUpdateView,
     ProjectUpdateView,
     TaskCreateView,
-    TaskDetailView,
+    # TaskDetailView,
     TaskUpdateView,
-    WorkerDatePointListView,
+    # WorkerDatePointListView,
     WorkerProjectPhaseDetailView,
     WorkerSummaryView,
     home,
@@ -105,7 +105,7 @@ urlpatterns = [
         name="projectphase-update",
     ),
     # Task DetailView.
-    path("task/<int:task_pk>/", TaskDetailView.as_view(), name="task-detail"),
+    # path("task/<int:task_pk>/", TaskDetailView.as_view(), name="task-detail"),
     # Task CreateView.
     path(
         "task/new/<int:projectphase_pk>/",
@@ -141,12 +141,12 @@ urlpatterns = [
         DatePointUpdateView.as_view(),
         name="datepoint-update",
     ),
-    # List of user's DatePoints within a project.
-    path(
-        "datepoints/worker/<int:project_pk>/<int:worker_pk>/",
-        WorkerDatePointListView.as_view(),
-        name="worker-datepoint-list",
-    ),
+    # # List of user's DatePoints within a project.
+    # path(
+    #     "datepoints/worker/<int:project_pk>/<int:worker_pk>/",
+    #     WorkerDatePointListView.as_view(),
+    #     name="worker-datepoint-list",
+    # ),
     # List of DatePoint within project in given day.
     path(
         "datepoints/<int:project_pk>/<slug:date>/",
@@ -156,7 +156,7 @@ urlpatterns = [
     # Approve DatePoint.
     path(
         "datepoint/<int:datepoint_pk>/approve/",
-        ManagerApproveDatePointView.as_view(),
+        ApproveDatePointView.as_view(),
         name="datepoint-approve",
     ),
     path(

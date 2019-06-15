@@ -17,11 +17,25 @@
                 <div class="card-body">
                     <p class="card-text">
                         {% for phase in project.projectphase_set.all %}
+                        {% ifequal user.groups.all.0|stringformat:"s" 'Worker' %}
+
+                        {% if phase.ongoing %}
+                        <a class="text-success"
+                            href="{% url 'worker-projectphase-detail' phase.id %}">{{ phase.title }}</a>
+                        {% else %}
+                        <a class="text-danger"
+                            href="{% url 'worker-projectphase-detail' phase.id %}">{{ phase.title }}</a>
+                        {% endif %}
+
+                        {% else %}
+
                         {% if phase.ongoing %}
                         <a class="text-success" href="{% url 'projectphase-detail' phase.id %}">{{ phase.title }}</a>
                         {% else %}
                         <a class="text-danger" href="{% url 'projectphase-detail' phase.id %}">{{ phase.title }}</a>
                         {% endif %}
+
+                        {% endifequal %}
                         {% endfor %}
                     </p>
                 </div>
