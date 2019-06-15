@@ -16,7 +16,13 @@ Aktualne konta do logowania w bazie danych (plik db.sqlite3):
 
     - Hasło: qazxcdews
 
-3. Konto z uprawnieniami administratora (z dostępem do panelu admina):
+3. Przykładowe konto z uprawnieniami klienta:
+
+    - Login: Client1/Client2
+
+    - Hasło: qazxcdews
+
+4. Konto z uprawnieniami administratora (z dostępem do panelu admina):
 
     - Login: admin
 
