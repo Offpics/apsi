@@ -631,17 +631,14 @@ class TaskCreateView(
     model = Task
     fields = ["title"]
 
-    # This function is called when valid form data has been Posted.
-    # It gets current project id from url and attach it to the new Task
-    # and saving it.
     def form_valid(self, form):
         # Get project by id.
-        project = get_object_or_404(
+        projectphase = get_object_or_404(
             ProjectPhase, id=self.kwargs["projectphase_pk"]
         )
 
         # Append the form with returned project.
-        form.instance.project = project
+        form.instance.project = projectphase
 
         # Create new Task.
         return super(TaskCreateView, self).form_valid(form)

@@ -60,7 +60,7 @@ class ProjectPhase(models.Model):
 
     ongoing = models.BooleanField(default=True)
 
-    # Dates in format [("m-Y", "m-Y"), ("m-Y", "m-Y")]
+    # Dates in format '[("m-Y", "m-Y"), ("m-Y", "m-Y")]'
     dates = models.TextField(default="[]")
 
     first_datepoint = models.DateField(auto_now=True)
@@ -80,6 +80,13 @@ class ProjectPhase(models.Model):
     def __str__(self):
         return f"{self.title, self.project.title}"
 
+    def save(self, *args, **kwargs):
+        if not self.ongoing:
+            raise ValueError(
+                f"{self.title} has ended. Unable to update/insert new data."
+            )
+        super().save(*args, **kwargs)
+
 
 class Task(models.Model):
     # Title of the task.
@@ -91,12 +98,12 @@ class Task(models.Model):
     # Description of the projet.
     description = models.TextField(blank=True)
 
-    def save(self, *args, **kwargs):
-        if not self.project.ongoing:
-            raise ValueError(
-                f"{self.project.title} has ended. Unable to insert new data."
-            )
-        super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     if not self.project.ongoing:
+    #         raise ValueError(
+    #             f"{self.project.title} has ended. Unable to update/insert new data."
+    #         )
+    #     super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.title}"
@@ -142,7 +149,7 @@ class DatePoint(models.Model):
     def save(self, *args, **kwargs):
         if not self.task.project.ongoing:
             raise ValueError(
-                f"{self.task.project.title} has ended. Unable to insert new data."
+                f"{self.task.project.title} has ended. Unable to update/insert new data."
             )
 
         if type(self.worked_date) is str:
