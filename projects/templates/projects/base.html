@@ -62,6 +62,10 @@
             {% ifequal user.groups.all.0|stringformat:"s" 'Worker' %}
             <a class="nav-link" href="{% url 'worker-summary' user.id %}">Summary</a>
             {% endifequal %}
+            {% if request.user.is_staff %}
+            <a class="nav-item nav-link" href="{% url 'admin:index' %}">Admin Panel</a>
+            {% endif %}
+
           </div>
           <!-- Navbar Right Side -->
           <div class="navbar-nav">
