@@ -60,16 +60,23 @@ class DatePointCreateForm2(forms.ModelForm):
 
 
 class QueryDatepointsForm(forms.Form):
-    dates = forms.ChoiceField(
-        widget=forms.Select(), initial=f"{datetime.now().month}", required=True
+    dates = forms.ChoiceField(widget=forms.Select(), required=True)
+
+    view = forms.ChoiceField(
+        widget=forms.Select(),
+        choices=[("jira_view", "jira"), ("table_view", "table")],
+        required=True,
     )
 
     def __init__(self, *args, **kwargs):
 
         dates = kwargs.pop("dates")
+        initial = kwargs.pop("initial")
+        print(initial)
         super(QueryDatepointsForm, self).__init__(*args, **kwargs)
 
         self.fields["dates"].choices = dates
+        self.initial["dates"] = initial
 
         self.helper = FormHelper()
         self.helper.form_show_labels = False

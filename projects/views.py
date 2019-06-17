@@ -202,6 +202,9 @@ class ProjectPhaseDetailView(
         )
 
         kwargs["dates"] = projectphase.get_dates()
+        kwargs["initial"] = datetime.datetime.strftime(
+            datetime.datetime.now(), "%Y-%m"
+        )
 
         return kwargs
 
@@ -211,6 +214,7 @@ class ProjectPhaseDetailView(
         calendar_view = False
         table_view = False
         worker_summary_view = False
+        jira_view = False
 
         # Get context.
         context = super().get_context_data(**kwargs)
@@ -243,6 +247,14 @@ class ProjectPhaseDetailView(
         else:
             worker_summary_view = True
             context["worker_summary_view"] = True
+
+        try:
+            self.kwargs["jira_view"]
+        except KeyError:
+            pass
+        else:
+            jira_view = True
+            context["jira_view"] = True
 
         try:
             worker = get_object_or_404(User, id=self.kwargs["worker_pk"])
@@ -409,6 +421,101 @@ class ProjectPhaseDetailView(
 
             context["services"] = services
 
+        elif jira_view:
+
+            group_name = self.request.user.groups.all()[0].name
+
+            queryset = DatePoint.objects.filter(
+                task__project_id=self.kwargs["projectphase_pk"],
+                worked_date__month=month,
+                worked_date__year=year,
+            ).order_by("-worked_date")
+
+            worked_dates = set()
+            workers = set()
+
+            for item in queryset:
+                worked_dates.add(
+                    datetime.datetime.strftime(item.worked_date, "%Y-%m-%d")
+                )
+                workers.add(item.worker.username)
+
+            worked_dates = sorted(list(worked_dates))
+            workers = sorted(list(workers))
+
+            context["worked_dates"] = worked_dates
+
+            client_exists = Project.objects.get(
+                projectphase__id=self.kwargs["projectphase_pk"]
+            ).client.exists()
+
+            workers_list = []
+            td_list_js = []
+
+            i = 0
+            for worker in workers:
+                td_list = []
+                for worked_date in worked_dates:
+                    hours = 0
+                    queryset = DatePoint.objects.filter(
+                        task__project_id=self.kwargs["projectphase_pk"],
+                        worked_date=worked_date,
+                        worker__username=worker,
+                    )
+
+                    content = ""
+
+                    j_change = []
+                    for datepoint in queryset:
+                        hours += datepoint.worked_time
+                        content += f"<a href='{reverse('datepoint-detail', kwargs={'datepoint_pk': datepoint.id})}'>"
+                        content += f"<p> {datepoint.title} | {datepoint.worked_time}h "
+                        content += "</a>"
+                        if datepoint.approved_manager:
+                            content += f"| M: <span id='approved_manager_{datepoint.id}'>✓</span>"
+                        else:
+                            content += f"| M: <span id='approved_manager_{datepoint.id}'>❌</span>"
+                        if client_exists and datepoint.approved_client:
+                            content += f"| C: <span id='approved_client_{datepoint.id}'>✓</span>"
+                        elif client_exists and not datepoint.approved_client:
+                            content += f"| C: <span id='approved_client_{datepoint.id}'>❌</span>"
+
+                        if (
+                            group_name == "Manager"
+                            and datepoint.approved_manager
+                        ):
+                            content += f"<button class='btn btn-danger btn-sm ml-1' id='btn_{datepoint.id}'>-</button></p>"
+                        elif (
+                            group_name == "Manager"
+                            and not datepoint.approved_manager
+                        ):
+                            content += f"<button class='btn btn-success btn-sm ml-1' id='btn_{datepoint.id}'>+</button></p>"
+
+                        if (
+                            group_name == "Client"
+                            and datepoint.approved_client
+                        ):
+                            content += f"<button class='btn btn-danger btn-sm ml-1' id='btn_{datepoint.id}'>-</button></p>"
+                        elif (
+                            group_name == "Client"
+                            and not datepoint.approved_client
+                        ):
+                            content += f"<button class='btn btn-success btn-sm ml-1' id='btn_{datepoint.id}'>+</button></p>"
+
+                        j_change.append(datepoint.id)
+
+                    td_list.append({"id": f"td_{i}", "hours": hours})
+                    td_list_js.append(
+                        {"id": f"td_{i}", "content": content, "jds": j_change}
+                    )
+                    i += 1
+
+                workers_list.append({"username": worker, "td": td_list})
+
+            context["workers"] = workers
+            context["workers_list"] = workers_list
+            context["td_list_js"] = json.dumps(td_list_js)
+
         return context
 
     def post(self, request, *args, **kwargs):
@@ -416,17 +523,28 @@ class ProjectPhaseDetailView(
         form = self.get_form()
         if form.is_valid():
             dates = form.cleaned_data["dates"]
-            # month = form.cleaned_data["month"]
-            # year = form.cleaned_data["year"]
+            view = form.cleaned_data["view"]
             projectphase_pk = kwargs["projectphase_pk"]
-            tmp_url = reverse(
-                "projectphase-date-table",
-                kwargs={
-                    "projectphase_pk": projectphase_pk,
-                    "month": dates[5:7],
-                    "year": dates[:4],
-                },
-            )
+
+            if view == "jira_view":
+                tmp_url = reverse(
+                    "projectphase-jira-view",
+                    kwargs={
+                        "projectphase_pk": projectphase_pk,
+                        "month": dates[5:7],
+                        "year": dates[:4],
+                    },
+                )
+
+            else:
+                tmp_url = reverse(
+                    "projectphase-date-table",
+                    kwargs={
+                        "projectphase_pk": projectphase_pk,
+                        "month": dates[5:7],
+                        "year": dates[:4],
+                    },
+                )
             print(tmp_url)
             return redirect(tmp_url)
 

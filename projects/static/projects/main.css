@@ -13,3 +13,8 @@
   background-repeat: no-repeat;
   background-size: cover;
 }
+
+.scrollTable {
+  height: 42rem;
+  overflow-y: scroll;
+}

@@ -337,7 +337,48 @@
         {% endif %}
 
 
+        {% if jira_view %}
 
+
+        <div class="scrollTable">
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Worker</th>
+                        {% for worked_date in worked_dates %}
+                        <th>{{ worked_date }}</th>
+
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in workers_list %}
+                    <tr>
+                        <th>{{ item.username }}</th>
+
+                        {% for tmp in item.td %}
+
+                        {% ifnotequal tmp.hours 0 %}
+
+                        <td id="{{ tmp.id }}">{{ tmp.hours }}h</td>
+
+                        {% else %}
+
+                        <td id="{{ tmp.id }}"></td>
+
+                        {% endifnotequal %}
+
+                        {% endfor %}
+                    </tr>
+
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+
+
+        {% endif %}
 
 
     </div>
@@ -347,6 +388,49 @@
 
 
 
+{% if jira_view %}
+<script>
+
+    const td_list_js = JSON.parse("{{ td_list_js | escapejs }}");
+    const user_group = "{{ user.groups.all.0 }}";
+
+    td_list_js.forEach(element => {
+        if (element.content != '') {
+            console.log(element.jds)
+            $("#" + element.id).popover({
+                html: true,
+                content: element.content,
+            }).on('shown.bs.popover', () => {
+                element.jds.forEach(jd => {
+                    // $("#btn_" + jd).text('xd')
+                    $("#btn_" + jd).click(function () {
+                        $.get("/datepoint/" + jd + "/approve/", function (data) {
+                            if (data == "False") {
+                                document.querySelector("#btn_" + jd).classList.replace("btn-danger", "btn-success");
+                                $("#btn_" + jd).text("+")
+                                if (user_group == "Manager") {
+                                    $("#approved_manager_" + jd).text("❌")
+                                } else if (user_group == "Client") {
+                                    $("#approved_client_" + jd).text("❌")
+                                }
+                            } else {
+                                document.querySelector("#btn_" + jd).classList.replace("btn-success", "btn-danger");
+                                $("#btn_" + jd).text("-")
+                                if (user_group == "Manager") {
+                                    $("#approved_manager_" + jd).text("✓")
+                                } else if (user_group == "Client") {
+                                    $("#approved_client_" + jd).text("✓")
+                                }
+
+                            }
+                        })
+                    })
+                })
+            });
+        }
+    })
+</script>
+{% endif %}
 
 
 

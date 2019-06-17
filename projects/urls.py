@@ -60,6 +60,12 @@ urlpatterns = [
         name="projectphase-date-table",
     ),
     path(
+        "projectphase/jira/<int:projectphase_pk>/<int:month>/<int:year>/",
+        ProjectPhaseDetailView.as_view(),
+        {"jira_view": True},
+        name="projectphase-jira-view",
+    ),
+    path(
         "projects/<int:projectphase_pk>/calendar/<int:worker_pk>/",
         ProjectPhaseDetailView.as_view(),
         {"calendar_view": True},
