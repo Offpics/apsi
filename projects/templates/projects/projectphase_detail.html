@@ -130,6 +130,7 @@
 
                 {% ifnotequal user.groups.all.0|stringformat:"s" 'Worker' %}
 
+                {% ifnotequal object.dates '[]' %}
                 <div class="content-section">
                     <form method="POST">
                         {% csrf_token %}
@@ -150,6 +151,7 @@
                         all
                     </a>
                 </div>
+                {% endifnotequal %}
 
                 {% endifnotequal %}
 
