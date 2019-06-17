@@ -199,7 +199,9 @@
 
     <div class="col-8">
         {% if calendar_view %}
+        {% if worker_name %}
         <h1>Callendar view for: {{ worker_name }}</h1>
+        {% endif %}
         <div id='calendar'></div>
         {% endif %}
 
