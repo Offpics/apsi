@@ -16,6 +16,7 @@
 {% endif %}
 
 
+{% if datepoint_list.exists %}
 
 <table class="table table-responsive">
     <thead>
@@ -140,4 +141,9 @@
 
     $('label[for="id_worked_time"]').setAttrbute('Time')
 </script>
+
+{% else %}
+<h3>No datepoints :(</h3>
+{% endif %}
+
 {% endblock display_content %}

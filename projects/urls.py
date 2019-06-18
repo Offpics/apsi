@@ -133,7 +133,7 @@ urlpatterns = [
         name="datepoint-update",
     ),
     path(
-        "datepoints/<int:projectphase_pk>/<slug:date>/",
+        "datepoints/<int:projectphase_pk>/<int:worker_pk>/<slug:date>/",
         ProjectPhaseTableDatePointView.as_view(),
         name="datepoint-list",
     ),

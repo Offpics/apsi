@@ -249,8 +249,11 @@ class ProjectPhaseTableDatePointView(ProjectPhaseDetailView):
         # Get context.
         context = super().get_context_data(**kwargs)
 
+        worker = get_object_or_404(User, id=self.kwargs["worker_pk"])
+
         queryset = DatePoint.objects.filter(
             task__project_id=self.kwargs["projectphase_pk"],
+            worker=worker,
             worked_date=self.kwargs["date"],
         )
 

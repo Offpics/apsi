@@ -50,7 +50,8 @@
             eventLimit: 4,
             dateClick: function (info) {
                 var projectphase_pk = "{{ view.kwargs.projectphase_pk }}"
-                window.location.href = '/datepoints/' + projectphase_pk + '/' + info.dateStr + '/';
+                var worker_pk = "{{ view.kwargs.worker_pk }}"
+                window.location.href = '/datepoints/' + projectphase_pk + '/' + worker_pk + '/' + info.dateStr + '/';
             },
             events: temp,
         });
