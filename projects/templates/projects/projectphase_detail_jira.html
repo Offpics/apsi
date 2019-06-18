@@ -26,7 +26,7 @@
 
                 {% ifnotequal tmp.hours 0 %}
 
-                <td id="{{ tmp.id }}">{{ tmp.hours }}h</td>
+                <td tabindex="0" id="{{ tmp.id }}">{{ tmp.hours }}h</td>
 
                 {% else %}
 
@@ -57,6 +57,7 @@
             $("#" + element.id).popover({
                 html: true,
                 content: element.content,
+                // trigger: 'focus',
             }).on('shown.bs.popover', () => {
                 element.jds.forEach(jd => {
                     // $("#btn_" + jd).text('xd')
@@ -83,9 +84,21 @@
                         })
                     })
                 })
-            });
+            }).click(function (e) {
+                e.stopPropagation();
+            });;
         }
     })
+
+    td_list_js.forEach(element => {
+        $(document).click(function (e) {
+            if (($('.popover').has(e.target).length == 0) || $(e.target).is('.close')) {
+                $('#' + element.id).popover('hide');
+            }
+        });
+    })
+
+
 </script>
 
 
