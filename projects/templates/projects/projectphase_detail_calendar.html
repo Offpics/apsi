@@ -11,6 +11,8 @@
 <script src="{% static 'projects/fullcalendar/core/main.js' %}"></script>
 <script src="{% static 'projects/fullcalendar/daygrid/main.js' %}"></script>
 <script src="{% static 'projects/fullcalendar/interaction/main.js' %}"></script>
+<script src="{% static 'projects/fullcalendar/bootstrap/main.js' %}"></script>
+<script src="{% static 'projects/fullcalendar/timegrid/main.js' %}"></script>
 
 
 {% ifequal user.groups.all.0|stringformat:"s" 'Worker' %}
@@ -23,7 +25,7 @@
 
         var calendar = new FullCalendar.Calendar(calendarEl, {
             eventLimit: 4,
-            plugins: ['interaction', 'dayGrid'],
+            plugins: ['interaction', 'dayGrid', 'bootstrap', 'timeGrid'],
             dateClick: function (info) {
                 var projectphase_pk = "{{ view.kwargs.projectphase_pk }}"
                 window.location.href = '/datepoint/new/' + projectphase_pk + '/' + info.dateStr + '/';
@@ -44,7 +46,7 @@
         var calendarEl = document.getElementById('calendar');
 
         var calendar = new FullCalendar.Calendar(calendarEl, {
-            plugins: ['interaction', 'dayGrid'],
+            plugins: ['interaction', 'dayGrid', 'bootstrap', 'timeGrid'],
             eventLimit: 4,
             dateClick: function (info) {
                 var projectphase_pk = "{{ view.kwargs.projectphase_pk }}"

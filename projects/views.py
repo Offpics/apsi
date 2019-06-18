@@ -216,6 +216,7 @@ class ProjectPhaseDetailView(
                         "year": dates[:4],
                     },
                 )
+            print(tmp_url)
             return redirect(tmp_url)
 
     permission_required = "projects.view_projectphase"
@@ -544,6 +545,8 @@ class ProjectPhaseCalendarView(ProjectPhaseDetailView):
 
         # Create json and add it to context.
         context["datepoints"] = json.dumps(datepoints)
+
+        print(datepoints)
 
         return context
 
@@ -1222,4 +1225,5 @@ class WorkerSummaryView(
                     "year": dates[:4],
                 },
             )
+            print(tmp_url)
             return redirect(tmp_url)
