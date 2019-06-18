@@ -1,27 +1,31 @@
 from django.urls import path
 
-from .views import (
+from .views import (  # TaskDetailView,; WorkerDatePointListView,
+    ApproveDatePointView,
     DatePointCreateView,
     DatePointDetailView,
-    DatePointListView,
     DatePointUpdateView,
-    ApproveDatePointView,
     ManagerEndProject,
     ManagerEndProjectPhase,
     MyProjectsListView,
     ProjectBill,
     ProjectCreateView,
-    ProjectDetailView,
     ProjectPhaseBill,
     ProjectPhaseCreateView,
     ProjectPhaseDetailView,
+    ProjectPhaseJiraView,
+    ProjectPhaseTableAllView,
+    ProjectPhaseTableDateView,
+    ProjectPhaseWorkerView,
+    ProjectPhaseTaskView,
+    ProjectPhaseWorkerSummaryView,
+    ProjectPhaseCalendarView,
+    ProjectPhaseTableDatePointView,
     ProjectPhaseUpdateView,
     ProjectUpdateView,
     TaskCreateView,
-    # TaskDetailView,
     TaskUpdateView,
-    # WorkerDatePointListView,
-    WorkerProjectPhaseDetailView,
+    WorkerProjectPhaseDetail,
     WorkerSummaryView,
     home,
 )
@@ -41,59 +45,40 @@ urlpatterns = [
         ProjectPhaseDetailView.as_view(),
         name="projectphase-detail",
     ),
-    # Projects DetailView.
-    path(
-        "projects/<int:project_pk>/",
-        ProjectDetailView.as_view(),
-        name="project-detail",
-    ),
     path(
         "projectphase/<int:projectphase_pk>/all/",
-        ProjectPhaseDetailView.as_view(),
-        {"all": True, "table_view": True},
+        ProjectPhaseTableAllView.as_view(),
         name="projectphase-detail-all",
     ),
     path(
         "projectphase/<int:projectphase_pk>/<int:month>/<int:year>/",
-        ProjectPhaseDetailView.as_view(),
-        {"table_view": True},
+        ProjectPhaseTableDateView.as_view(),
         name="projectphase-date-table",
     ),
     path(
         "projectphase/jira/<int:projectphase_pk>/<int:month>/<int:year>/",
-        ProjectPhaseDetailView.as_view(),
-        {"jira_view": True},
+        ProjectPhaseJiraView.as_view(),
         name="projectphase-jira-view",
     ),
     path(
         "projects/<int:projectphase_pk>/calendar/<int:worker_pk>/",
-        ProjectPhaseDetailView.as_view(),
-        {"calendar_view": True},
+        ProjectPhaseCalendarView.as_view(),
         name="worker-projectphase-calendar",
     ),
     path(
         "projectphase/<int:projectphase_pk>/table/<int:worker_pk>/",
-        ProjectPhaseDetailView.as_view(),
-        {"table_view": True},
+        ProjectPhaseWorkerView.as_view(),
         name="worker-projectphase-table",
     ),
     path(
         "projectphase/<int:projectphase_pk>/<int:task_pk>/",
-        ProjectPhaseDetailView.as_view(),
-        {"table_view": True},
+        ProjectPhaseTaskView.as_view(),
         name="task-projectphase-table",
     ),
     path(
         "projectphase/<int:projectphase_pk>/<int:worker_pk>/summary/",
-        ProjectPhaseDetailView.as_view(),
-        {"worker_summary_view": True},
+        ProjectPhaseWorkerSummaryView.as_view(),
         name="projectphase-worker-summary",
-    ),
-    # Project DetailView with approved colors for fullcalendar.
-    path(
-        "projects/<int:project_pk>/<str:approved>/",
-        ProjectDetailView.as_view(),
-        name="project-detail-approved",
     ),
     # Project CreateView.
     path("projects/new/", ProjectCreateView.as_view(), name="project-create"),
@@ -147,16 +132,9 @@ urlpatterns = [
         DatePointUpdateView.as_view(),
         name="datepoint-update",
     ),
-    # # List of user's DatePoints within a project.
-    # path(
-    #     "datepoints/worker/<int:project_pk>/<int:worker_pk>/",
-    #     WorkerDatePointListView.as_view(),
-    #     name="worker-datepoint-list",
-    # ),
     path(
         "datepoints/<int:projectphase_pk>/<slug:date>/",
-        ProjectPhaseDetailView.as_view(),
-        {"table_view": True, "datepoint_list": True},
+        ProjectPhaseTableDatePointView.as_view(),
         name="datepoint-list",
     ),
     # Approve DatePoint.
@@ -167,7 +145,7 @@ urlpatterns = [
     ),
     path(
         "worker/projectphase/<int:projectphase_pk>/",
-        WorkerProjectPhaseDetailView.as_view(),
+        WorkerProjectPhaseDetail.as_view(),
         name="worker-projectphase-detail",
     ),
     path(
@@ -181,7 +159,7 @@ urlpatterns = [
         name="bill-for-project",
     ),
     path(
-        "projectphase/<int:projectphase_pk>/endprojectphase/",
+        "projectphase/<int:projectphase_pk>/end/",
         ManagerEndProjectPhase.as_view(),
         name="projectphase-end",
     ),

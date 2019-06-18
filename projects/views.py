@@ -1,10 +1,10 @@
 import datetime
-from django.contrib.auth.mixins import UserPassesTestMixin
 import json
 
 from django.contrib.auth.mixins import (
     LoginRequiredMixin,
     PermissionRequiredMixin,
+    UserPassesTestMixin,
 )
 from django.contrib.auth.models import User
 from django.contrib.messages.views import SuccessMessageMixin
@@ -22,17 +22,14 @@ from django.views.generic.edit import FormMixin
 from wkhtmltopdf.views import PDFTemplateView
 
 from .forms import (
-    DatePointCreateForm,
     DatePointCreateForm2,
     ProjectCreateForm,
     QueryDatepointsForm,
     WorkerMonthForm,
 )
 from .mixins import (
-    ManagerCanEditDatepoint,
     UserBelongsToProjectMixin,
     UserBelongsToTaskMixin,
-    UserCanViewDatePointDetail,
     WorkerCanChangeDatePointDetail,
 )
 from .models import DatePoint, Project, ProjectPhase, Task
@@ -133,18 +130,6 @@ class MyProjectsListView(
 ###############################################################################
 
 
-class ProjectDetailView(
-    LoginRequiredMixin,
-    PermissionRequiredMixin,
-    UserBelongsToProjectMixin,
-    DetailView,
-):
-    model = Project
-    pk_url_kwarg = "project_pk"
-
-    permission_required = "projects.view_project"
-
-
 class ProjectPhaseUpdateView(
     LoginRequiredMixin,
     PermissionRequiredMixin,
@@ -185,10 +170,6 @@ class ProjectPhaseDetailView(
     FormMixin,
     DetailView,
 ):
-    """
-    TODO: Change this View according to
-    https://docs.djangoproject.com/en/2.2/topics/class-based-views/mixins/#using-formmixin-with-detailview.
-    """
 
     model = ProjectPhase
     form_class = QueryDatepointsForm
@@ -207,316 +188,6 @@ class ProjectPhaseDetailView(
         )
 
         return kwargs
-
-    def get_context_data(self, **kwargs):
-        """ Populate context with DatePointCreateForm. """
-
-        calendar_view = False
-        table_view = False
-        worker_summary_view = False
-        jira_view = False
-
-        # Get context.
-        context = super().get_context_data(**kwargs)
-
-        # Get DatePoints that belong to current project.
-        queryset = DatePoint.objects.filter(
-            task__project_id=self.kwargs["projectphase_pk"]
-        )
-
-        try:
-            self.kwargs["calendar_view"]
-        except KeyError:
-            pass
-        else:
-            calendar_view = True
-            context["calendar_view"] = True
-
-        try:
-            self.kwargs["table_view"]
-        except KeyError:
-            pass
-        else:
-            table_view = True
-            context["table_view"] = True
-
-        try:
-            self.kwargs["worker_summary_view"]
-        except KeyError:
-            pass
-        else:
-            worker_summary_view = True
-            context["worker_summary_view"] = True
-
-        try:
-            self.kwargs["jira_view"]
-        except KeyError:
-            pass
-        else:
-            jira_view = True
-            context["jira_view"] = True
-
-        try:
-            worker = get_object_or_404(User, id=self.kwargs["worker_pk"])
-        except KeyError:
-            pass
-        else:
-            queryset = DatePoint.objects.filter(
-                task__project_id=self.kwargs["projectphase_pk"], worker=worker
-            ).order_by("-worked_date")
-            context["worker_name"] = worker.username
-
-        try:
-            task = get_object_or_404(Task, id=self.kwargs["task_pk"])
-        except KeyError:
-            pass
-        else:
-            context["task_title"] = task.title
-            queryset = DatePoint.objects.filter(task=task).order_by(
-                "-worked_date"
-            )
-
-        try:
-            self.kwargs["all"]
-        except KeyError:
-            pass
-        else:
-            queryset = DatePoint.objects.filter(
-                task__project_id=self.kwargs["projectphase_pk"]
-            ).order_by("-worked_date")
-
-        try:
-            month = self.kwargs["month"]
-            year = self.kwargs["year"]
-        except KeyError:
-            pass
-        else:
-            queryset = DatePoint.objects.filter(
-                task__project_id=self.kwargs["projectphase_pk"],
-                worked_date__month=month,
-                worked_date__year=year,
-            ).order_by("-worked_date")
-
-        try:
-            self.kwargs["datepoint_list"]
-        except KeyError:
-            pass
-        else:
-            queryset = DatePoint.objects.filter(
-                task__project_id=self.kwargs["projectphase_pk"],
-                worked_date=self.kwargs["date"],
-            )
-
-        if calendar_view:
-            # Assign one color to one task and create dict of it.
-            # tasks_color = dict(zip(tasks, colors))
-            print("------")
-            print(self.request.user.groups.all().exists)
-            print("------")
-
-            if self.request.user.groups.all().exists():
-
-                if self.request.user.groups.all()[0].name == "Worker":
-                    # Create list of dictionaries that is used to populate calendar events.
-                    datepoints = [
-                        {
-                            "title": f"{item.task.title} | {item.worked_time}h",
-                            # "title": item.worker.username,
-                            "start": item.worked_date.strftime("%Y-%m-%d"),
-                            "url": reverse(
-                                "datepoint-detail",
-                                kwargs={"datepoint_pk": item.id},
-                            ),
-                            # "color": tasks_color[item.task.id],
-                        }
-                        for item in queryset
-                    ]
-                elif self.request.user.groups.all()[0].name == "Manager":
-
-                    datepoints = [
-                        {
-                            "title": f"{item.task.title} | {item.worked_time}h",
-                            # "title": item.worker.username,
-                            "start": item.worked_date.strftime("%Y-%m-%d"),
-                            "url": reverse(
-                                "datepoint-detail",
-                                kwargs={"datepoint_pk": item.id},
-                            ),
-                            "color": "green"
-                            if item.approved_manager
-                            else "red",
-                        }
-                        for item in queryset
-                    ]
-
-                elif self.request.user.groups.all()[0].name == "Client":
-
-                    datepoints = [
-                        {
-                            "title": f"{item.task.title} | {item.worked_time}h",
-                            # "title": item.worker.username,
-                            "start": item.worked_date.strftime("%Y-%m-%d"),
-                            "url": reverse(
-                                "datepoint-detail",
-                                kwargs={"datepoint_pk": item.id},
-                            ),
-                            "color": "green"
-                            if item.approved_client
-                            else "red",
-                        }
-                        for item in queryset
-                    ]
-
-            # Create json and add it to context.
-            context["datepoints"] = json.dumps(datepoints)
-        elif table_view:
-
-            context["datepoint_list"] = queryset
-
-            datepoints_pks = [item.pk for item in queryset]
-
-            context["datepoints_pks"] = json.dumps(datepoints_pks)
-
-        elif worker_summary_view:
-
-            tasks = Task.objects.filter(
-                project_id=self.kwargs["projectphase_pk"]
-            )
-
-            if tasks.exists():
-                client_exists = tasks[0].project.project.client.exists()
-
-            tasks_dict = {}
-            total_hours = 0
-
-            for task in tasks:
-                tasks_dict[f"{task.id}"] = 0
-
-            for datepoint in queryset:
-                if client_exists:
-                    if (
-                        datepoint.approved_manager
-                        and datepoint.approved_client
-                    ):
-                        tasks_dict[
-                            f"{datepoint.task.id}"
-                        ] += datepoint.worked_time
-                        total_hours += datepoint.worked_time
-                else:
-                    if datepoint.approved_manager:
-                        tasks_dict[
-                            f"{datepoint.task.id}"
-                        ] += datepoint.worked_time
-                        total_hours += datepoint.worked_time
-
-            services = []
-            for task in tasks:
-                services.append(
-                    {"title": task.title, "hours": tasks_dict[f"{task.id}"]}
-                )
-
-            if worker.profile.price_per_hour:
-                context["total_hours"] = total_hours
-                context["pay"] = total_hours * worker.profile.price_per_hour
-
-            context["services"] = services
-
-        elif jira_view:
-
-            group_name = self.request.user.groups.all()[0].name
-
-            queryset = DatePoint.objects.filter(
-                task__project_id=self.kwargs["projectphase_pk"],
-                worked_date__month=month,
-                worked_date__year=year,
-            ).order_by("-worked_date")
-
-            worked_dates = set()
-            workers = set()
-
-            for item in queryset:
-                worked_dates.add(
-                    datetime.datetime.strftime(item.worked_date, "%Y-%m-%d")
-                )
-                workers.add(item.worker.username)
-
-            worked_dates = sorted(list(worked_dates))
-            workers = sorted(list(workers))
-
-            context["worked_dates"] = worked_dates
-
-            client_exists = Project.objects.get(
-                projectphase__id=self.kwargs["projectphase_pk"]
-            ).client.exists()
-
-            workers_list = []
-            td_list_js = []
-
-            i = 0
-            for worker in workers:
-                td_list = []
-                for worked_date in worked_dates:
-                    hours = 0
-                    queryset = DatePoint.objects.filter(
-                        task__project_id=self.kwargs["projectphase_pk"],
-                        worked_date=worked_date,
-                        worker__username=worker,
-                    )
-
-                    content = ""
-
-                    j_change = []
-                    for datepoint in queryset:
-                        hours += datepoint.worked_time
-                        content += f"<a href='{reverse('datepoint-detail', kwargs={'datepoint_pk': datepoint.id})}'>"
-                        content += f"<p> {datepoint.title} | {datepoint.worked_time}h "
-                        content += "</a>"
-                        if datepoint.approved_manager:
-                            content += f"| M: <span id='approved_manager_{datepoint.id}'>✓</span>"
-                        else:
-                            content += f"| M: <span id='approved_manager_{datepoint.id}'>❌</span>"
-                        if client_exists and datepoint.approved_client:
-                            content += f"| C: <span id='approved_client_{datepoint.id}'>✓</span>"
-                        elif client_exists and not datepoint.approved_client:
-                            content += f"| C: <span id='approved_client_{datepoint.id}'>❌</span>"
-
-                        if (
-                            group_name == "Manager"
-                            and datepoint.approved_manager
-                        ):
-                            content += f"<button class='btn btn-danger btn-sm ml-1' id='btn_{datepoint.id}'>-</button></p>"
-                        elif (
-                            group_name == "Manager"
-                            and not datepoint.approved_manager
-                        ):
-                            content += f"<button class='btn btn-success btn-sm ml-1' id='btn_{datepoint.id}'>+</button></p>"
-
-                        if (
-                            group_name == "Client"
-                            and datepoint.approved_client
-                        ):
-                            content += f"<button class='btn btn-danger btn-sm ml-1' id='btn_{datepoint.id}'>-</button></p>"
-                        elif (
-                            group_name == "Client"
-                            and not datepoint.approved_client
-                        ):
-                            content += f"<button class='btn btn-success btn-sm ml-1' id='btn_{datepoint.id}'>+</button></p>"
-
-                        j_change.append(datepoint.id)
-
-                    td_list.append({"id": f"td_{i}", "hours": hours})
-                    td_list_js.append(
-                        {"id": f"td_{i}", "content": content, "jds": j_change}
-                    )
-                    i += 1
-
-                workers_list.append({"username": worker, "td": td_list})
-
-            context["workers"] = workers
-            context["workers_list"] = workers_list
-            context["td_list_js"] = json.dumps(td_list_js)
-
-        return context
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -551,19 +222,338 @@ class ProjectPhaseDetailView(
     permission_required = "projects.view_projectphase"
 
 
-class WorkerProjectPhaseDetailView(
-    LoginRequiredMixin,
-    PermissionRequiredMixin,
-    UserBelongsToProjectMixin,
-    DetailView,
-):
-    model = ProjectPhase
-    form_class = DatePointCreateForm
-    pk_url_kwarg = "projectphase_pk"
+class ProjectPhaseTableAllView(ProjectPhaseDetailView):
+    template_name = "projects/projectphase_detail_table.html"
+
+    def get_context_data(self, **kwargs):
+        # Get context.
+        context = super().get_context_data(**kwargs)
+
+        queryset = DatePoint.objects.filter(
+            task__project_id=self.kwargs["projectphase_pk"]
+        ).order_by("-worked_date")
+
+        context["datepoint_list"] = queryset
+
+        datepoints_pks = [item.pk for item in queryset]
+
+        context["datepoints_pks"] = json.dumps(datepoints_pks)
+
+        return context
+
+
+class ProjectPhaseTableDatePointView(ProjectPhaseDetailView):
+    template_name = "projects/projectphase_detail_table.html"
+
+    def get_context_data(self, **kwargs):
+        # Get context.
+        context = super().get_context_data(**kwargs)
+
+        queryset = DatePoint.objects.filter(
+            task__project_id=self.kwargs["projectphase_pk"],
+            worked_date=self.kwargs["date"],
+        )
+
+        context["datepoint_list"] = queryset
+
+        datepoints_pks = [item.pk for item in queryset]
+
+        context["datepoints_pks"] = json.dumps(datepoints_pks)
+
+        return context
+
+
+class ProjectPhaseWorkerView(ProjectPhaseDetailView):
+    template_name = "projects/projectphase_detail_table.html"
+
+    def get_context_data(self, **kwargs):
+        # Get context.
+        context = super().get_context_data(**kwargs)
+
+        worker = get_object_or_404(User, id=self.kwargs["worker_pk"])
+
+        queryset = DatePoint.objects.filter(
+            task__project_id=self.kwargs["projectphase_pk"], worker=worker
+        ).order_by("-worked_date")
+
+        context["worker_name"] = worker.username
+
+        context["datepoint_list"] = queryset
+
+        datepoints_pks = [item.pk for item in queryset]
+
+        context["datepoints_pks"] = json.dumps(datepoints_pks)
+
+        return context
+
+
+class ProjectPhaseWorkerSummaryView(ProjectPhaseDetailView):
+    template_name = "projects/projectphase_detail_worker_summary.html"
+
+    def get_context_data(self, **kwargs):
+        # Get context.
+        context = super().get_context_data(**kwargs)
+
+        worker = get_object_or_404(User, id=self.kwargs["worker_pk"])
+
+        queryset = DatePoint.objects.filter(
+            task__project_id=self.kwargs["projectphase_pk"], worker=worker
+        ).order_by("-worked_date")
+
+        tasks = Task.objects.filter(project_id=self.kwargs["projectphase_pk"])
+
+        if tasks.exists():
+            client_exists = tasks[0].project.project.client.exists()
+
+        tasks_dict = {}
+        total_hours = 0
+
+        for task in tasks:
+            tasks_dict[f"{task.id}"] = 0
+
+        for datepoint in queryset:
+            if client_exists:
+                if datepoint.approved_manager and datepoint.approved_client:
+                    tasks_dict[f"{datepoint.task.id}"] += datepoint.worked_time
+                    total_hours += datepoint.worked_time
+            else:
+                if datepoint.approved_manager:
+                    tasks_dict[f"{datepoint.task.id}"] += datepoint.worked_time
+                    total_hours += datepoint.worked_time
+
+        services = []
+        for task in tasks:
+            services.append(
+                {"title": task.title, "hours": tasks_dict[f"{task.id}"]}
+            )
+
+        if worker.profile.price_per_hour:
+            context["total_hours"] = total_hours
+            context["pay"] = total_hours * worker.profile.price_per_hour
+
+        context["services"] = services
+
+        return context
+
+
+class ProjectPhaseTaskView(ProjectPhaseDetailView):
+    template_name = "projects/projectphase_detail_table.html"
+
+    def get_context_data(self, **kwargs):
+        # Get context.
+        context = super().get_context_data(**kwargs)
+
+        task = get_object_or_404(Task, id=self.kwargs["task_pk"])
+        context["task_title"] = task.title
+        queryset = DatePoint.objects.filter(task=task).order_by("-worked_date")
+
+        context["datepoint_list"] = queryset
+
+        datepoints_pks = [item.pk for item in queryset]
+
+        context["datepoints_pks"] = json.dumps(datepoints_pks)
+
+        return context
+
+
+class ProjectPhaseTableDateView(ProjectPhaseDetailView):
+    template_name = "projects/projectphase_detail_table.html"
+
+    def get_context_data(self, **kwargs):
+        # Get context.
+        context = super().get_context_data(**kwargs)
+
+        queryset = DatePoint.objects.filter(
+            task__project_id=self.kwargs["projectphase_pk"],
+            worked_date__month=self.kwargs["month"],
+            worked_date__year=self.kwargs["year"],
+        ).order_by("-worked_date")
+
+        context["datepoint_list"] = queryset
+
+        datepoints_pks = [item.pk for item in queryset]
+
+        context["datepoints_pks"] = json.dumps(datepoints_pks)
+
+        return context
+
+
+class ProjectPhaseJiraView(ProjectPhaseDetailView):
+    template_name = "projects/projectphase_detail_jira.html"
+
+    def get_context_data(self, **kwargs):
+
+        # Get context.
+        context = super().get_context_data(**kwargs)
+
+        group_name = self.request.user.groups.all()[0].name
+
+        queryset = DatePoint.objects.filter(
+            task__project_id=self.kwargs["projectphase_pk"],
+            worked_date__month=self.kwargs["month"],
+            worked_date__year=self.kwargs["year"],
+        ).order_by("-worked_date")
+
+        worked_dates = set()
+        workers = set()
+
+        for item in queryset:
+            worked_dates.add(
+                datetime.datetime.strftime(item.worked_date, "%Y-%m-%d")
+            )
+            workers.add(item.worker.username)
+
+        worked_dates = sorted(list(worked_dates))
+        workers = sorted(list(workers))
+
+        context["worked_dates"] = worked_dates
+
+        client_exists = Project.objects.get(
+            projectphase__id=self.kwargs["projectphase_pk"]
+        ).client.exists()
+
+        workers_list = []
+        td_list_js = []
+
+        i = 0
+        for worker in workers:
+            td_list = []
+            for worked_date in worked_dates:
+                hours = 0
+                queryset = DatePoint.objects.filter(
+                    task__project_id=self.kwargs["projectphase_pk"],
+                    worked_date=worked_date,
+                    worker__username=worker,
+                )
+
+                content = ""
+
+                j_change = []
+                for datepoint in queryset:
+                    hours += datepoint.worked_time
+                    content += f"<a href='{reverse('datepoint-detail', kwargs={'datepoint_pk': datepoint.id})}'>"
+                    content += (
+                        f"<p> {datepoint.title} | {datepoint.worked_time}h "
+                    )
+                    content += "</a>"
+                    if datepoint.approved_manager:
+                        content += f"| M: <span id='approved_manager_{datepoint.id}'>✓</span>"
+                    else:
+                        content += f"| M: <span id='approved_manager_{datepoint.id}'>❌</span>"
+                    if client_exists and datepoint.approved_client:
+                        content += f"| C: <span id='approved_client_{datepoint.id}'>✓</span>"
+                    elif client_exists and not datepoint.approved_client:
+                        content += f"| C: <span id='approved_client_{datepoint.id}'>❌</span>"
+
+                    if group_name == "Manager" and datepoint.approved_manager:
+                        content += f"<button class='btn btn-danger btn-sm ml-1' id='btn_{datepoint.id}'>-</button></p>"
+                    elif (
+                        group_name == "Manager"
+                        and not datepoint.approved_manager
+                    ):
+                        content += f"<button class='btn btn-success btn-sm ml-1' id='btn_{datepoint.id}'>+</button></p>"
+
+                    if group_name == "Client" and datepoint.approved_client:
+                        content += f"<button class='btn btn-danger btn-sm ml-1' id='btn_{datepoint.id}'>-</button></p>"
+                    elif (
+                        group_name == "Client"
+                        and not datepoint.approved_client
+                    ):
+                        content += f"<button class='btn btn-success btn-sm ml-1' id='btn_{datepoint.id}'>+</button></p>"
+
+                    j_change.append(datepoint.id)
+
+                td_list.append({"id": f"td_{i}", "hours": hours})
+                td_list_js.append(
+                    {"id": f"td_{i}", "content": content, "jds": j_change}
+                )
+                i += 1
+
+            workers_list.append({"username": worker, "td": td_list})
+
+        context["workers"] = workers
+        context["workers_list"] = workers_list
+        context["td_list_js"] = json.dumps(td_list_js)
+
+        return context
+
+
+class ProjectPhaseCalendarView(ProjectPhaseDetailView):
+    template_name = "projects/projectphase_detail_calendar.html"
+
+    def get_context_data(self, **kwargs):
+        # Get context.
+        context = super().get_context_data(**kwargs)
+
+        worker = get_object_or_404(User, id=self.kwargs["worker_pk"])
+
+        queryset = DatePoint.objects.filter(
+            task__project_id=self.kwargs["projectphase_pk"], worker=worker
+        ).order_by("-worked_date")
+
+        if self.request.user.groups.all().exists():
+
+            if self.request.user.groups.all()[0].name == "Worker":
+                # Create list of dictionaries that is used to populate calendar events.
+                datepoints = [
+                    {
+                        "title": f"{item.task.title} | {item.worked_time}h",
+                        # "title": item.worker.username,
+                        "start": item.worked_date.strftime("%Y-%m-%d"),
+                        "url": reverse(
+                            "datepoint-detail",
+                            kwargs={"datepoint_pk": item.id},
+                        ),
+                        # "color": tasks_color[item.task.id],
+                    }
+                    for item in queryset
+                ]
+            elif self.request.user.groups.all()[0].name == "Manager":
+
+                datepoints = [
+                    {
+                        "title": f"{item.task.title} | {item.worked_time}h",
+                        # "title": item.worker.username,
+                        "start": item.worked_date.strftime("%Y-%m-%d"),
+                        "url": reverse(
+                            "datepoint-detail",
+                            kwargs={"datepoint_pk": item.id},
+                        ),
+                        "color": "green" if item.approved_manager else "red",
+                    }
+                    for item in queryset
+                ]
+
+            elif self.request.user.groups.all()[0].name == "Client":
+
+                datepoints = [
+                    {
+                        "title": f"{item.task.title} | {item.worked_time}h",
+                        # "title": item.worker.username,
+                        "start": item.worked_date.strftime("%Y-%m-%d"),
+                        "url": reverse(
+                            "datepoint-detail",
+                            kwargs={"datepoint_pk": item.id},
+                        ),
+                        "color": "green" if item.approved_client else "red",
+                    }
+                    for item in queryset
+                ]
+
+        # Create json and add it to context.
+        context["datepoints"] = json.dumps(datepoints)
+
+        print(datepoints)
+
+        return context
+
+
+class WorkerProjectPhaseDetail(ProjectPhaseDetailView):
+    template_name = "projects/projectphase_detail_calendar.html"
 
     def test_func(self):
         if self.request.user.groups.filter(name="Worker").exists():
-            return super(WorkerProjectPhaseDetailView, self).test_func()
+            return super(WorkerProjectPhaseDetail, self).test_func()
         else:
             return False
 
@@ -596,8 +586,6 @@ class WorkerProjectPhaseDetailView(
         context["calendar_view"] = True
 
         return context
-
-    permission_required = "projects.view_projectphase"
 
 
 ###############################################################################

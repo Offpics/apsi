@@ -1,0 +1,77 @@
+{% extends "projects/projectphase_detail.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+
+{% block head %}
+
+<link href="{% static 'projects/fullcalendar/core/main.css' %}" rel="stylesheet" />
+<link href="{% static 'projects/fullcalendar/daygrid/main.css' %}" rel='stylesheet' />
+
+<script src="{% static 'projects/fullcalendar/core/main.js' %}"></script>
+<script src="{% static 'projects/fullcalendar/daygrid/main.js' %}"></script>
+<script src="{% static 'projects/fullcalendar/interaction/main.js' %}"></script>
+<script src="{% static 'projects/fullcalendar/bootstrap/main.js' %}"></script>
+<script src="{% static 'projects/fullcalendar/timegrid/main.js' %}"></script>
+
+
+{% ifequal user.groups.all.0|stringformat:"s" 'Worker' %}
+
+<script>
+    var temp = JSON.parse("{{ datepoints|escapejs }}");
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var calendarEl = document.getElementById('calendar');
+
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            eventLimit: 4,
+            plugins: ['interaction', 'dayGrid', 'bootstrap', 'timeGrid'],
+            dateClick: function (info) {
+                var projectphase_pk = "{{ view.kwargs.projectphase_pk }}"
+                window.location.href = '/datepoint/new/' + projectphase_pk + '/' + info.dateStr + '/';
+            },
+            events: temp,
+        });
+
+        calendar.render();
+    });
+
+</script>
+
+{% else %}
+<script>
+    var temp = JSON.parse("{{ datepoints|escapejs }}");
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var calendarEl = document.getElementById('calendar');
+
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            plugins: ['interaction', 'dayGrid', 'bootstrap', 'timeGrid'],
+            eventLimit: 4,
+            dateClick: function (info) {
+                var projectphase_pk = "{{ view.kwargs.projectphase_pk }}"
+                window.location.href = '/datepoints/' + projectphase_pk + '/' + info.dateStr + '/';
+            },
+            events: temp,
+        });
+
+        calendar.render();
+    });
+
+</script>
+
+{% endifequal %}
+
+{% endblock head %}
+
+
+{% block display_content %}
+
+{% if worker_name %}
+<h1>Callendar view for: {{ worker_name }}</h1>
+{% endif %}
+<div id='calendar'></div>
+
+
+
+{% endblock display_content %}

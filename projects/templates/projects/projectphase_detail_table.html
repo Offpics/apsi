@@ -1,0 +1,143 @@
+{% extends "projects/projectphase_detail.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+
+{% block display_content %}
+
+{% if task_title %}
+<h3>Task: {{ task_title }} </h3>
+{% endif %}
+
+{% if perms.projects.change_task %}
+{% if view.kwargs.task_pk %}
+<p><a href="{% url 'task-update' view.kwargs.task_pk %}">Update Current Task</a></p>
+{% endif %}
+{% endif %}
+
+
+
+<table class="table table-responsive">
+    <thead>
+        <tr>
+            <th scope="col">Worker</th>
+            {% if not view.kwargs.task_pk %}
+            <th scope="col">Task</th>
+            {% endif %}
+            <th scope="col">Date</th>
+            <th scope="col">Hours</th>
+            <th scope="col">Description</th>
+            <th scope="col">Manager</th>
+            {% if object.project.client.exists %}
+            <th scope="col">Client</th>
+            {% endif %}
+            {% ifnotequal user.groups.all.0|stringformat:"s" 'Worker' %}
+            {% if object.ongoing %}
+            <th scope="col">Action</th>
+            {% endif %}
+            {% endifnotequal %}
+        </tr>
+    </thead>
+    {% for datepoint in datepoint_list %}
+    <tbody>
+        <tr>
+            <td><a href="{% url 'datepoint-detail' datepoint.id %}">{{ datepoint.worker }}</a></td>
+            {% if not view.kwargs.task_pk %}
+            <td>{{ datepoint.task }}</td>
+            {% endif %}
+            <td>{{ datepoint.worked_date|date:'d-m-Y' }}</td>
+            <td>{{ datepoint.worked_time }}</td>
+            <td>
+                {% if datepoint.description %}
+                {{ datepoint.description }}
+                {% else %}
+                ---
+                {% endif %}
+            </td>
+            {% if datepoint.approved_manager is False %}
+
+            <td>
+                <img src="{% static 'admin/img/icon-no.svg' %}" id="approved_manager{{ datepoint.id }}">
+            </td>
+            {% else %}
+            <td>
+                <img src="{% static 'admin/img/icon-yes.svg' %}" id="approved_manager{{ datepoint.id }}">
+            </td>
+            {% endif %}
+
+            {% if object.project.client.exists %}
+            {% if datepoint.approved_client is False %}
+
+            <td>
+                <img src="{% static 'admin/img/icon-no.svg' %}" id="approved_client{{ datepoint.id }}">
+            </td>
+            {% else %}
+            <td>
+                <img src="{% static 'admin/img/icon-yes.svg' %}" id="approved_client{{ datepoint.id }}">
+            </td>
+            {% endif %}
+            {% endif %}
+
+            {% ifnotequal user.groups.all.0|stringformat:"s" 'Worker' %}
+            {% if object.ongoing %}
+            <td>
+                {% ifequal user.groups.all.0|stringformat:"s" 'Manager' %}
+                {% if datepoint.approved_manager is False %}
+                <button class="btn btn-outline-success" id="btn{{ datepoint.id }}">Approve</button>
+                {% else %}
+                <button class="btn btn-outline-danger" id="btn{{ datepoint.id }}">Disapprove</button>
+                {% endif %}
+                {% endifequal %}
+
+
+                {% ifequal user.groups.all.0|stringformat:"s" 'Client' %}
+                {% if datepoint.approved_client is False %}
+                <button class="btn btn-outline-success" id="btn{{ datepoint.id }}">Approve</button>
+                {% else %}
+                <button class="btn btn-outline-danger" id="btn{{ datepoint.id }}">Disapprove</button>
+                {% endif %}
+                {% endifequal %}
+            </td>
+            {% endif %}
+            {% endifnotequal %}
+
+        </tr>
+    </tbody>
+    {% endfor %}
+</table>
+
+
+
+<script>
+    const datepoints_pks = JSON.parse("{{ datepoints_pks | escapejs }}");
+    const user_group = "{{ user.groups.all.0 }}";
+
+    datepoints_pks.forEach(element => {
+
+        document.querySelector("#btn" + element).addEventListener('click', function () {
+            $.get("/datepoint/" + element + "/approve/", function (data) {
+                if (data == "False") {
+                    document.querySelector("#btn" + element).classList.replace("btn-outline-danger", "btn-outline-success");
+                    document.querySelector("#btn" + element).textContent = "Approve";
+                    if (user_group == "Manager") {
+                        document.querySelector("#approved_manager" + element).src = "{% static 'admin/img/icon-no.svg' %}";
+                    } else if (user_group == "Client") {
+                        document.querySelector("#approved_client" + element).src = "{% static 'admin/img/icon-no.svg' %}";
+                    };
+
+                } else {
+                    document.querySelector("#btn" + element).classList.replace("btn-outline-success", "btn-outline-danger");
+                    document.querySelector("#btn" + element).textContent = "Disapprove";
+                    if (user_group == "Manager") {
+                        document.querySelector("#approved_manager" + element).src = "{% static 'admin/img/icon-yes.svg' %}";
+                    } else if (user_group == "Client") {
+                        document.querySelector("#approved_client" + element).src = "{% static 'admin/img/icon-yes.svg' %}";
+                    };
+                }
+            });
+        });
+    });
+
+    $('label[for="id_worked_time"]').setAttrbute('Time')
+</script>
+{% endblock display_content %}

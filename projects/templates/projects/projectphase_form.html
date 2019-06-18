@@ -54,10 +54,10 @@
     const btn = document.querySelector("#btnongoing");
     console.log(btn);
 
-    console.log('projectphase/' + projectphase_pk + "/endprojectphase/");
+    console.log('projectphase/' + projectphase_pk + "/end/");
 
     btn.addEventListener('click', function () {
-        $.get('/projectphase/' + projectphase_pk + "/endprojectphase/", function (data) {
+        $.get('/projectphase/' + projectphase_pk + "/end/", function (data) {
             console.log('xd');
             alert(data);
             btn.style.display = "none";
