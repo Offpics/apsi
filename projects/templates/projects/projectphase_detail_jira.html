@@ -5,12 +5,14 @@
 
 {% block display_content %}
 
+<h3>{{ view.kwargs.year }}-{{ view.kwargs.month }}</h3>
+
 
 <div class="scrollTable">
-    <table class="table table-bordered table-striped table-sm table-responsive">
+    <table class="table table-bordered table-striped table-sm table-responsive ">
         <thead>
             <tr>
-                <th>Worker</th>
+                <th>Worker/Day</th>
                 {% for worked_date in worked_dates %}
                 <th>{{ worked_date }}</th>
 
@@ -53,14 +55,36 @@
 
     td_list_js.forEach(element => {
         if (element.content != '') {
-            console.log(element.jds)
+            var temp = new Array(element.jds.length)
             $("#" + element.id).popover({
                 html: true,
                 content: element.content,
                 // trigger: 'focus',
             }).on('shown.bs.popover', () => {
-                element.jds.forEach(jd => {
-                    // $("#btn_" + jd).text('xd')
+                element.jds.forEach(function (jd, i) {
+                    if (typeof temp[i] !== "undefined") {
+                        if (user_group == "Manager") {
+                            if (temp[i] == false) {
+                                $("#approved_manager_" + jd).text("❌")
+                                document.querySelector("#btn_" + jd).classList.replace("btn-danger", "btn-success");
+                                $("#btn_" + jd).text("+")
+                            } else {
+                                document.querySelector("#btn_" + jd).classList.replace("btn-success", "btn-danger");
+                                $("#approved_manager_" + jd).text("✓")
+                                $("#btn_" + jd).text("-")
+                            }
+                        } else if (user_group == "Client") {
+                            if (temp[i] == false) {
+                                $("#approved_client_" + jd).text("❌")
+                                document.querySelector("#btn_" + jd).classList.replace("btn-danger", "btn-success");
+                                $("#btn_" + jd).text("+")
+                            } else {
+                                document.querySelector("#btn_" + jd).classList.replace("btn-success", "btn-danger");
+                                $("#approved_client_" + jd).text("✓")
+                                $("#btn_" + jd).text("-")
+                            }
+                        }
+                    }
                     $("#btn_" + jd).click(function () {
                         $.get("/datepoint/" + jd + "/approve/", function (data) {
                             if (data == "False") {
@@ -71,7 +95,8 @@
                                 } else if (user_group == "Client") {
                                     $("#approved_client_" + jd).text("❌")
                                 }
-                            } else {
+                                temp[i] = false
+                            } else if (data == "True") {
                                 document.querySelector("#btn_" + jd).classList.replace("btn-success", "btn-danger");
                                 $("#btn_" + jd).text("-")
                                 if (user_group == "Manager") {
@@ -79,8 +104,10 @@
                                 } else if (user_group == "Client") {
                                     $("#approved_client_" + jd).text("✓")
                                 }
+                                temp[i] = true
 
                             }
+
                         })
                     })
                 })

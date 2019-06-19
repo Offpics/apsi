@@ -408,7 +408,7 @@ class ProjectPhaseJiraView(ProjectPhaseDetailView):
         worked_dates = sorted(list(worked_dates))
         workers = sorted(list(workers))
 
-        context["worked_dates"] = worked_dates
+        context["worked_dates"] = [item[8:10] for item in worked_dates]
 
         client_exists = Project.objects.get(
             projectphase__id=self.kwargs["projectphase_pk"]
