@@ -117,13 +117,7 @@
 
 
                     {% ifnotequal user.groups.all.0|stringformat:"s" 'Worker' %}
-                    {% if not object.ongoing %}
-                    {% if object.project.client.exists %}
 
-                    <a href="{% url 'bill-for-phase' view.kwargs.projectphase_pk %}" class="btn btn-outline-info">Print
-                        Bill</a>
-                    {% endif %}
-                    {% endif %}
                     {% endifnotequal %}
                 </div>
 

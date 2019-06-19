@@ -49,9 +49,6 @@
                     <a class="btn btn-outline-primary" href="{% url 'project-update' project.id %}">Update</a>
                     {% endif %}
                     {% ifnotequal user.groups.all.0|stringformat:"s" 'Worker' %}
-                    {% if project.client.exists and not project.ongoing %}
-                    <a class="btn btn-outline-primary" href="{% url 'bill-for-project' project.id %}">Bill</a>
-                    {% endif %}
                     {% endifnotequal %}
                 </div>
             </div>

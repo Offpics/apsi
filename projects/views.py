@@ -1,37 +1,22 @@
 import datetime
 import json
 
-from django.contrib.auth.mixins import (
-    LoginRequiredMixin,
-    PermissionRequiredMixin,
-    UserPassesTestMixin,
-)
+from django.contrib.auth.mixins import (LoginRequiredMixin,
+                                        PermissionRequiredMixin,
+                                        UserPassesTestMixin)
 from django.contrib.auth.models import User
 from django.contrib.messages.views import SuccessMessageMixin
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.views.generic import (
-    CreateView,
-    DetailView,
-    ListView,
-    UpdateView,
-    View,
-)
+from django.views.generic import (CreateView, DetailView, ListView, UpdateView,
+                                  View)
 from django.views.generic.edit import FormMixin
-from wkhtmltopdf.views import PDFTemplateView
 
-from .forms import (
-    DatePointCreateForm2,
-    ProjectCreateForm,
-    QueryDatepointsForm,
-    WorkerMonthForm,
-)
-from .mixins import (
-    UserBelongsToProjectMixin,
-    UserBelongsToTaskMixin,
-    WorkerCanChangeDatePointDetail,
-)
+from .forms import (DatePointCreateForm2, ProjectCreateForm,
+                    QueryDatepointsForm, WorkerMonthForm)
+from .mixins import (UserBelongsToProjectMixin, UserBelongsToTaskMixin,
+                     WorkerCanChangeDatePointDetail)
 from .models import DatePoint, Project, ProjectPhase, Task
 
 ###############################################################################
@@ -965,154 +950,154 @@ def home(request):
     return render(request, "projects/home.html", context={"home_view": True})
 
 
-class ProjectPhaseBill(
-    LoginRequiredMixin,
-    PermissionRequiredMixin,
-    UserBelongsToProjectMixin,
-    PDFTemplateView,
-):
-    permission_required = "projects.view_projectphase"
-    filename = "bill.pdf"
-    template_name = "projects/bill.html"
+# class ProjectPhaseBill(
+#     LoginRequiredMixin,
+#     PermissionRequiredMixin,
+#     UserBelongsToProjectMixin,
+#     PDFTemplateView,
+# ):
+#     permission_required = "projects.view_projectphase"
+#     filename = "bill.pdf"
+#     template_name = "projects/bill.html"
 
-    def test_func(self):
-        if self.request.user.groups.filter(
-            name="Manager"
-        ) or self.request.user.groups.filter(name="Client"):
-            return super(ProjectPhaseBill, self).test_func()
-        else:
-            return False
+#     def test_func(self):
+#         if self.request.user.groups.filter(
+#             name="Manager"
+#         ) or self.request.user.groups.filter(name="Client"):
+#             return super(ProjectPhaseBill, self).test_func()
+#         else:
+#             return False
 
-    def get_context_data(self, **kwargs):
-        context = super(ProjectPhaseBill, self).get_context_data(**kwargs)
+#     def get_context_data(self, **kwargs):
+#         context = super(ProjectPhaseBill, self).get_context_data(**kwargs)
 
-        projectphase = get_object_or_404(
-            ProjectPhase, id=self.kwargs["projectphase_pk"]
-        )
-        price_per_hour = projectphase.project.price_per_hour
+#         projectphase = get_object_or_404(
+#             ProjectPhase, id=self.kwargs["projectphase_pk"]
+#         )
+#         price_per_hour = projectphase.project.price_per_hour
 
-        client_detail = {
-            "name": projectphase.project.client_detail.name,
-            "street": projectphase.project.client_detail.street,
-            "postal_code": projectphase.project.client_detail.postal_code,
-            "city": projectphase.project.client_detail.city,
-            "nip": projectphase.project.client_detail.nip,
-        }
+#         client_detail = {
+#             "name": projectphase.project.client_detail.name,
+#             "street": projectphase.project.client_detail.street,
+#             "postal_code": projectphase.project.client_detail.postal_code,
+#             "city": projectphase.project.client_detail.city,
+#             "nip": projectphase.project.client_detail.nip,
+#         }
 
-        context["client_detail"] = client_detail
+#         context["client_detail"] = client_detail
 
-        if price_per_hour is None:
-            raise Http404(
-                "Price is not set, please contact the administrator."
-            )
+#         if price_per_hour is None:
+#             raise Http404(
+#                 "Price is not set, please contact the administrator."
+#             )
 
-        tasks = Task.objects.filter(project_id=self.kwargs["projectphase_pk"])
+#         tasks = Task.objects.filter(project_id=self.kwargs["projectphase_pk"])
 
-        services = []
-        total_hours = 0
+#         services = []
+#         total_hours = 0
 
-        for task in tasks:
-            datepoints = DatePoint.objects.filter(task=task)
+#         for task in tasks:
+#             datepoints = DatePoint.objects.filter(task=task)
 
-            hours = 0
-            for datepoint in datepoints:
-                if datepoint.approved_client and datepoint.approved_manager:
-                    hours += datepoint.worked_time
-                    total_hours += datepoint.worked_time
+#             hours = 0
+#             for datepoint in datepoints:
+#                 if datepoint.approved_client and datepoint.approved_manager:
+#                     hours += datepoint.worked_time
+#                     total_hours += datepoint.worked_time
 
-            service = {
-                "title": task.title,
-                "count": hours,
-                "price": f"{price_per_hour:.2f}".replace(".", ","),
-                "brutto": f"{price_per_hour * hours:.2f}".replace(".", ","),
-                "netto": f"{price_per_hour * hours:.2f}".replace(".", ","),
-            }
+#             service = {
+#                 "title": task.title,
+#                 "count": hours,
+#                 "price": f"{price_per_hour:.2f}".replace(".", ","),
+#                 "brutto": f"{price_per_hour * hours:.2f}".replace(".", ","),
+#                 "netto": f"{price_per_hour * hours:.2f}".replace(".", ","),
+#             }
 
-            if hours != 0:
-                services.append(service)
+#             if hours != 0:
+#                 services.append(service)
 
-        context["services"] = services
+#         context["services"] = services
 
-        total = 0
-        total = total_hours * price_per_hour
-        context["total"] = f"{total:.2f}".replace(".", ",")
-        context["data"] = datetime.datetime.today()
+#         total = 0
+#         total = total_hours * price_per_hour
+#         context["total"] = f"{total:.2f}".replace(".", ",")
+#         context["data"] = datetime.datetime.today()
 
-        return context
+#         return context
 
 
-class ProjectBill(
-    LoginRequiredMixin,
-    PermissionRequiredMixin,
-    UserBelongsToProjectMixin,
-    PDFTemplateView,
-):
-    permission_required = "projects.view_projectphase"
-    filename = "bill.pdf"
-    template_name = "projects/bill.html"
+# class ProjectBill(
+#     LoginRequiredMixin,
+#     PermissionRequiredMixin,
+#     UserBelongsToProjectMixin,
+#     PDFTemplateView,
+# ):
+#     permission_required = "projects.view_projectphase"
+#     filename = "bill.pdf"
+#     template_name = "projects/bill.html"
 
-    def test_func(self):
-        if self.request.user.groups.filter(
-            name="Manager"
-        ) or self.request.user.groups.filter(name="Client"):
-            return super(ProjectBill, self).test_func()
-        else:
-            return False
+#     def test_func(self):
+#         if self.request.user.groups.filter(
+#             name="Manager"
+#         ) or self.request.user.groups.filter(name="Client"):
+#             return super(ProjectBill, self).test_func()
+#         else:
+#             return False
 
-    def get_context_data(self, **kwargs):
-        context = super(ProjectBill, self).get_context_data(**kwargs)
+#     def get_context_data(self, **kwargs):
+#         context = super(ProjectBill, self).get_context_data(**kwargs)
 
-        project = get_object_or_404(Project, id=self.kwargs["project_pk"])
-        price_per_hour = project.price_per_hour
+#         project = get_object_or_404(Project, id=self.kwargs["project_pk"])
+#         price_per_hour = project.price_per_hour
 
-        client_detail = {
-            "name": project.client_detail.name,
-            "street": project.client_detail.street,
-            "postal_code": project.client_detail.postal_code,
-            "city": project.client_detail.city,
-            "nip": project.client_detail.nip,
-        }
+#         client_detail = {
+#             "name": project.client_detail.name,
+#             "street": project.client_detail.street,
+#             "postal_code": project.client_detail.postal_code,
+#             "city": project.client_detail.city,
+#             "nip": project.client_detail.nip,
+#         }
 
-        context["client_detail"] = client_detail
+#         context["client_detail"] = client_detail
 
-        if price_per_hour is None:
-            raise Http404(
-                "Price is not set, please contact the administrator."
-            )
+#         if price_per_hour is None:
+#             raise Http404(
+#                 "Price is not set, please contact the administrator."
+#             )
 
-        projectphases = project.projectphase_set.all()
+#         projectphases = project.projectphase_set.all()
 
-        services = []
-        total_hours = 0
+#         services = []
+#         total_hours = 0
 
-        for projectphase in projectphases:
-            queryset = DatePoint.objects.filter(task__project=projectphase)
+#         for projectphase in projectphases:
+#             queryset = DatePoint.objects.filter(task__project=projectphase)
 
-            hours = 0
+#             hours = 0
 
-            for datepoint in queryset:
-                if datepoint.approved_client and datepoint.approved_manager:
-                    hours += datepoint.worked_time
-                    total_hours += datepoint.worked_time
+#             for datepoint in queryset:
+#                 if datepoint.approved_client and datepoint.approved_manager:
+#                     hours += datepoint.worked_time
+#                     total_hours += datepoint.worked_time
 
-            service = {
-                "title": projectphase.title,
-                "count": hours,
-                "price": f"{price_per_hour:.2f}".replace(".", ","),
-                "brutto": f"{price_per_hour * hours:.2f}".replace(".", ","),
-                "netto": f"{price_per_hour * hours:.2f}".replace(".", ","),
-            }
+#             service = {
+#                 "title": projectphase.title,
+#                 "count": hours,
+#                 "price": f"{price_per_hour:.2f}".replace(".", ","),
+#                 "brutto": f"{price_per_hour * hours:.2f}".replace(".", ","),
+#                 "netto": f"{price_per_hour * hours:.2f}".replace(".", ","),
+#             }
 
-            if hours != 0:
-                services.append(service)
+#             if hours != 0:
+#                 services.append(service)
 
-        context["services"] = services
+#         context["services"] = services
 
-        total = total_hours * price_per_hour
-        context["total"] = f"{total:.2f}".replace(".", ",")
-        context["data"] = datetime.datetime.today()
+#         total = total_hours * price_per_hour
+#         context["total"] = f"{total:.2f}".replace(".", ",")
+#         context["data"] = datetime.datetime.today()
 
-        return context
+#         return context
 
 
 class WorkerSummaryView(

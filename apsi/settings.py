@@ -37,7 +37,7 @@ ALLOWED_HOSTS = [
 
 INSTALLED_APPS = [
     "crispy_forms",
-    "wkhtmltopdf",
+    # "wkhtmltopdf",
     "projects.apps.ProjectsConfig",
     "users.apps.UsersConfig",
     "django.contrib.admin",
