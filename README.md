@@ -1,7 +1,23 @@
 # APSI
+### aplikacja do obsługi projektów
+#
+#### Link do aplikacji  - https://apsi.kszymczyk.me/
+#
+#### instrukcja do aplikacji w pliku 
+- instrukcja_apsi.pdf
+#
+Dostępne są cztery rodzaje użytkowników z uprawnieniami nie-administratora
+>klient
 
-Link - https://apsi.kszymczyk.me/
+>pracownik
 
+>manager
+
+>nie przypisany
+
+Oraz uzytkownik z dostępem do panelu administracyjnego:
+>admin
+#
 Aktualne konta do logowania w bazie danych (plik db.sqlite3):
 
 1. Przykładowe konto z uprawnieniami Kierownika:
